@@ -5,6 +5,8 @@ export interface D3NodeInterface {
   name : string;
   children : any[]
   size : number;
+  didLoadChildren : boolean;
 
   loadChildren(): Promise<any[]>;
+  color() : string; // should return css
 }

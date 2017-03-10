@@ -5,6 +5,8 @@
 
 .node {
   cursor: pointer;
+  stroke: #000;
+  stroke-width: 0.1px;
 }
 
 .node:hover {

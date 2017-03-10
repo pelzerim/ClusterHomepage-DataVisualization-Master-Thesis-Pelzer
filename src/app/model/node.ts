@@ -1,10 +1,13 @@
 import {D3NodeInterface} from "./d3NodeInterface";
 import {DataRelService} from "../services/relational/data-rel.service";
+import {Color} from "./colors";
 /**
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3Node implements D3NodeInterface {
-  children: D3Node[] = [];
+
+  didLoadChildren: boolean = false;
+  children: D3Node[];
 
   constructor(public name: string,
               public size: number) {
@@ -17,9 +20,16 @@ export class D3Node implements D3NodeInterface {
     });
   }
 
+  color() : string {
+    return "red";
+  }
+
 }
 
 export class RelD3Node extends D3Node {
+  didLoadChildren: boolean = false;
+
+
   constructor(public name: string,
               public size: number,
               public tableName: string,
@@ -28,12 +38,17 @@ export class RelD3Node extends D3Node {
     super(name, size);
   }
   public loadChildren(): Promise<D3Node[]> {
-    if (this.children) {
+    if (this.children) { // Has children already, returning them
       return new Promise<any>((resolve, reject) => {
         resolve(this.children);
       });
     } else {
+      this.didLoadChildren = true;
       return this.data.getChildrenForNode(this);
     }
+  }
+
+  color() : string {
+    return Color.colorForTable(this.tableName);
   }
 }

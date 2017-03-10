@@ -1,8 +1,11 @@
 import {D3NodeInterface} from "./d3NodeInterface";
+import {Color} from "./colors";
 /**
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
+
+  didLoadChildren: boolean = true;
   public size: number;
 
   constructor(public name: string,
@@ -21,6 +24,10 @@ export class D3ConceptWrapper implements D3NodeInterface {
     });
   }
 
+  color(): string {
+    return "red";
+  }
+
 }
 
 export class RelD3ConceptWrapper extends D3ConceptWrapper {
@@ -29,4 +36,9 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
               public tableName: string) {
     super(name, children);
   }
+
+  color(): string {
+    return Color.colorForTable(this.tableName);
+  }
+
 }

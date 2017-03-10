@@ -51,20 +51,20 @@ export class CirclesComponent implements OnInit {
     let diameter = +svg.attr("width");
     let g = svg.append("g").attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")"); // Rücken in die mitte
 
-    let color = (d3.scaleLinear()
-      .domain([-1, 5]) as any)
-      .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"]) // .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"])
-      .interpolate(d3.interpolateHcl); // Ne farbe in nem kontinurierlichen Spektrum  https://github.com/d3/d3-scale/blob/master/README.md#scaleLinear
+    // let color = (d3.scaleLinear()
+    //   .domain([-1, 5]) as any)
+    //   .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"]) // .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"])
+    //   .interpolate(d3.interpolateHcl); // Ne farbe in nem kontinurierlichen Spektrum  https://github.com/d3/d3-scale/blob/master/README.md#scaleLinear
 
     let pack = d3.pack()
       .size([diameter - margin, diameter - margin])
-      .padding(2);
+      //.padding(2); // Erstellt packlayout, aber noch nix drin
 
 
     this.relData.getRoot().then(rootObject => {
       //if (error) throw error;
       var root;
-      root = d3.hierarchy(rootObject)
+      root = d3.hierarchy(rootObject) // Macht ne hierachie aus den daten/Erweitert daten mit werten wie data,depth, height, parent usw
         .sum(function (d: any) {
           return d.size;
         })
@@ -73,7 +73,7 @@ export class CirclesComponent implements OnInit {
         });
 
       let focus = root,
-        nodes: any = pack(root).descendants(),
+        nodes: any = pack(root).descendants(), // pack(root) Legt die kreise aus, verteilt x,y koordinaten und radius; descendants: array of descendant nodes
         view;
 
       var circle = g.selectAll("circle")
@@ -83,10 +83,10 @@ export class CirclesComponent implements OnInit {
           return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
         })
         .style("fill", function (d: any) {
-          return d.children ? color(d.depth) : null;
+          return d.data.color();
         })
         .on("click", function (d) {
-          if (focus !== d) zoom(d);
+          if (focus !== d) loadAndZoom(d);
           d3.event.stopPropagation();
         });
 
@@ -107,49 +107,138 @@ export class CirclesComponent implements OnInit {
       var node = g.selectAll("circle,text");
 
       svg
-        .style("background", color(-1))
+        .style("background", "white")
         .on("click", function () {
-          zoom(root);
+          loadAndZoom(root);
         });
 
       zoomTo([root.x, root.y, root.r * 2 + margin]);
 
+
+      let loadAndZoom = (d) => {
+        if (!d.data.didLoadChildren) {
+          console.log("No children, loading.");
+          let dataObject = d.data as D3Node;
+          dataObject.loadChildren().then((children) => {
+            d.children = children;
+            console.log("Zooming to ")
+            // START virtual nodes
+            // http://stackoverflow.com/questions/29387379/inserting-nodes-into-d3-pack-layout-pagination-on-zoom
+            // http://fiddle.jshell.net/wfvwgqb9/2/
+            let virtualNodesByParentNode = (d3NodeParentElement, nodeChildrenElementArray) => {
+              //root.children[0].children[0].children = subnode_subnodes; already happened
+              // we need to do this because otherwise, the parent node object will be changed
+              let d3NodeParentElementClone = Object.assign(Object.create(d3NodeParentElement), d3NodeParentElement);
+              // Mach mir nen pack
+              let pack = d3.pack()
+                .size([d3NodeParentElementClone.r * 2 , d3NodeParentElementClone.r * 2 ]); // -1 is important to avoid edge overlap
+
+              d3NodeParentElementClone.children = nodeChildrenElementArray;
+
+              d3NodeParentElementClone = d3.hierarchy(d3NodeParentElementClone) // Macht ne hierachie aus den daten/Erweitert daten mit werten wie data,depth, height, parent usw
+                .sum(function (d: any) {
+                  return d.size;
+                })
+                .sort(function (a, b) {
+                  return b.value - a.value;
+                });
+
+              let nodes = pack(d3NodeParentElementClone).descendants();
+              // absolute x,y coordinates calculation
+              var curChildnode;
+              for (let i = 1; i < nodes.length; i++) {
+                curChildnode = nodes[i];
+                curChildnode.x = curChildnode.x - nodes[0].x + d3NodeParentElement.x;
+                curChildnode.y = curChildnode.y - nodes[0].y + d3NodeParentElement.y;
+                curChildnode.depth = d3NodeParentElement.depth + 1;
+                curChildnode.parent = d3NodeParentElement;
+              }
+              nodes.splice(0, 1);
+
+
+              return nodes;
+            }
+            // END virtual nodes
+
+            // START add nodes
+            let virtualNodes = virtualNodesByParentNode(d,children);
+            d.children = virtualNodes;
+            nodes.push.apply(nodes, virtualNodes);
+            circle = g.selectAll("circle")
+              .data(nodes)
+              .enter().append("circle")
+              .attr("class", function (d : any) {
+                return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
+              })
+              .style("fill", function (d : any) {
+                return d.data.color();
+              })
+              .on("click", function (d) {
+                if (focus !== d) loadAndZoom(d), d3.event.stopPropagation();
+              });
+            text.remove();
+            text = g.selectAll("text")
+              .data(nodes)
+              .enter().append("text")
+              .attr("class", "label")
+              .style("fill-opacity", function (d: any) {
+                return d.parent === root ? 1 : 0;
+              })
+              .style("display", function (d: any) {
+                return d.parent === root ? "inline" : "none";
+              })
+              .text(function (d: any) {
+                return d.data.name;
+              });
+
+
+            circle = g.selectAll("circle");
+            node = g.selectAll("circle,text");
+            // zoom to current focus again (do the transformation of the updated elements)
+            zoomTo(view);
+            zoom(d);
+            // END add nodes
+          }).catch((error) => {
+            console.log(error)
+          });
+        } else {
+          console.log("Already loaded, only zooming");
+          zoom(d);
+        }
+      }
+
+      /**
+       * Zoom to node d
+       * @param d
+       */
       let zoom = (d) => {
         let focus0 = focus;
         focus = d;
-        //
-        let dataObject = d.data as D3Node;
 
-        dataObject.loadChildren().then((children) => {
+        // START The zoom
+        let transition = d3.transition("bla")
+          .duration(750)
+          .tween("zoom", function (d) {
+            var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]); // was focus.r * 2 + margin
+            return function (t) {
+              zoomTo(i(t));
+            };
+          });
 
-          // START The zoom
-          let transition = d3.transition("bla")
-            .duration(750)
-            .tween("zoom", function (d) {
-              var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2 + margin]);
-              return function (t) {
-                zoomTo(i(t));
-              };
-            });
-
-          transition.selectAll("text")
-            .filter(function (d: any) {
-              return d.parent === focus || this.style.display === "inline";
-            })
-            .style("fill-opacity", function (d: any) {
-              return d.parent === focus ? 1 : 0;
-            })
-            .on("start", function (d: any) {
-              if (d.parent === focus) this.style.display = "inline";
-            })
-            .on("end", function (d: any) {
-              if (d.parent !== focus) this.style.display = "none";
-            });
-          // END The zoom
-        }).catch((error) => {
-          console.log(error)
-        });
-
+        transition.selectAll("text")
+          .filter(function (d: any) {
+            return d.parent === focus || this.style.display === "inline";
+          })
+          .style("fill-opacity", function (d: any) {
+            return d.parent === focus ? 1 : 0;
+          })
+          .on("start", function (d: any) {
+            if (d.parent === focus) this.style.display = "inline";
+          })
+          .on("end", function (d: any) {
+            if (d.parent !== focus) this.style.display = "none";
+          });
+        // END The zoom
 
       }
 
@@ -157,6 +246,9 @@ export class CirclesComponent implements OnInit {
         var k = diameter / v[2];
         view = v;
         node.attr("transform", function (d: any) {
+          // console.log("translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")");
+          // console.log(d)
+          // console.log(v)
           return "translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")";
         });
         circle.attr("r", function (d: any) {

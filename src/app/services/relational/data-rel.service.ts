@@ -37,7 +37,7 @@ export class DataRelService {
           }
         }
         node.children = children;
-        return node.children;
+        return children;
       })
       .catch((error:any) => Observable.throw(error || 'Server error'))
       .toPromise();
