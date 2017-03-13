@@ -4,6 +4,7 @@ import {Color} from "./colors";
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
+  isInFocus: boolean = true;
 
   didLoadChildren: boolean = true;
   public size: number;

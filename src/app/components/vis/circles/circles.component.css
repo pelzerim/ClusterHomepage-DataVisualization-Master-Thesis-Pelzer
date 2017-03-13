@@ -1,6 +1,6 @@
 .d3-chart {
-  width: 960px;
-  height: 960px;
+  width: 500px;
+  height: 500px;
 }
 
 .node {
@@ -14,12 +14,18 @@
   stroke-width: 1.5px;
 }
 
+.node-focus {
+  stroke: red !important;
+  stroke-width: 1.5px;
+}
+
 .node--leaf {
   fill: white;
 }
 
 .label {
-  font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 11px;
   text-anchor: middle;
   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
 }

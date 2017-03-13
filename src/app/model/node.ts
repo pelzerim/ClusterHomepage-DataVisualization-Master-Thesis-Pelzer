@@ -5,6 +5,7 @@ import {Color} from "./colors";
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3Node implements D3NodeInterface {
+  isInFocus: boolean = false;
 
   didLoadChildren: boolean = false;
   children: D3Node[];

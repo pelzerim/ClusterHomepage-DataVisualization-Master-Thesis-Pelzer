@@ -6,6 +6,7 @@ export interface D3NodeInterface {
   children : any[]
   size : number;
   didLoadChildren : boolean;
+  isInFocus : boolean;
 
   loadChildren(): Promise<any[]>;
   color() : string; // should return css
