@@ -10,4 +10,5 @@ export interface D3NodeInterface {
 
   loadChildren(): Promise<any[]>;
   color() : string; // should return css
+  id():string;
 }

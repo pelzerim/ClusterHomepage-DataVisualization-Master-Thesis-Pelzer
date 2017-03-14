@@ -26,8 +26,17 @@
 .label {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 11px;
+  margin-top: 10px;
   text-anchor: middle;
   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+  max-width:20px;
+}
+
+.icon {
+  font-family:FontAwesome;
+  font-size: 10px;
+  text-anchor: middle;
+
 }
 
 .label,

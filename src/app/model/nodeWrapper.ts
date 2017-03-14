@@ -1,11 +1,13 @@
 import {D3NodeInterface} from "./d3NodeInterface";
 import {Color} from "./colors";
+import {Guid} from "./GUID";
 /**
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
-  isInFocus: boolean = true;
 
+  isInFocus: boolean = true;
+  private _id : string = Guid.newGuid();
   didLoadChildren: boolean = true;
   public size: number;
 
@@ -16,6 +18,7 @@ export class D3ConceptWrapper implements D3NodeInterface {
     for (let child of children) {
       s += child.size;
     }
+
     this.size = s;
   }
 
@@ -27,6 +30,10 @@ export class D3ConceptWrapper implements D3NodeInterface {
 
   color(): string {
     return "red";
+  }
+
+  id(): string {
+    return this._id;
   }
 
 }

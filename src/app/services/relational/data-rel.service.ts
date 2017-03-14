@@ -14,14 +14,14 @@ export class DataRelService {
   private baseUrl = 'http://localhost:8888';
   private allClusterConcepts =
     {
-      "content_ausstellung": "Ausstellungen",
-      "content_kooperation": "Kooperationen",
+      // "content_ausstellung": "Ausstellungen",
+      // "content_kooperation": "Kooperationen",
       //"content_mitglied": "Mitglieder",
-      "content_nachwuchsfoerderung": "Nachwuchsfoerderungen",
-      "content_newsletter": "Newsletter",
-      "content_podcast": "Podcasts",
+      // "content_nachwuchsfoerderung": "Nachwuchsfoerderungen",
+      // "content_newsletter": "Newsletter",
+      // "content_podcast": "Podcasts",
       //"content_post": "Posts",
-      "content_pressemitteilung": "Pressemitteilungen",
+      // "content_pressemitteilung": "Pressemitteilungen",
       "content_projekt": "Projekte"
       //,"content_publikation": "Publikationen"
     }
@@ -49,7 +49,7 @@ export class DataRelService {
   }
 
   public getChildrenForNode(node: RelD3Node): Promise<D3NodeInterface[]> {
-    let url = this.baseUrl + "/children/" + node.tableName + "/" + node.id;
+    let url = this.baseUrl + "/children/" + node.tableName + "/" + node.externalId;
     console.log("QUERYING: " + url)
     return this.http
       .get(url)
