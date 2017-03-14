@@ -113,21 +113,25 @@ export class CirclesComponent implements OnInit {
         }
 
         // Remove child node
-        let removeChildNode = (parent) => {
+        let removeChildNodesOfNode = (parent) => {
           if (parent && parent.depth > 1) { // Always keep first 2 layers
-
             console.log("removeing children " + parent.parent.data.name)
-            for (let child of parent.parent.children) { // Remove all from this layer
-              if (child.children) {
-                nodes = nodes.filter(function (elem) {
-                  return child.children.indexOf(elem) === -1;
-                });
-                child.data.didLoadChildren = false;
-                child.children = null;
+            let removeChidren = (node) => {
+              for (let child of node.children) { // Remove all from this layer
+                if (child.children && child.children.length != 0) {
+                  console.log("removing " + child.data.name)
+                  removeChidren(child);
+                  nodes = nodes.filter(function (elem) {
+                    return child.children.indexOf(elem) === -1;
+                  });
+                  child.data.children = null;
+                  child.data.didLoadChildren = false;
+                  child.children = null; // Das hier ist nicht genug, es müssen auch die kindeskinder gelöscht werden, da sonst die size von Ihnen mit reingerechnet wird
+                }
               }
-
-
             }
+            removeChidren(parent.parent);
+
 
             // nodes = nodes.filter( function ( elem ) {
             //   return parent.children.indexOf( elem ) === -1;
@@ -141,33 +145,37 @@ export class CirclesComponent implements OnInit {
 
         }
 
-        // check if mouseover node is near enought
-        if (d.r * zoomFactor > diameter / this.factorWhenToLoadNewData) {
-          console.log("focus near")
+        let isNear = (d) => {
+          return d.r * zoomFactor > diameter / this.factorWhenToLoadNewData;
+        }
+
+        // check if mouseover node is near enought to focus
+        if (isNear(d)) {
           if (focus != d) {
+            console.log("focus near")
             // lade daten weil nah
             focusNode(d);
             loadDataForNode(d).then(() => {
               transitionText(focus);
             });
+          } else {
+            console.log("not focussing because already focused")
           }
-
-
-        } else if ((focus != d.parent) && d.parent.r * zoomFactor > diameter / this.factorWhenToLoadNewData) { // make sure that parent is focused
-          console.log("same layer")
-          // Lade auf selber ebene
-          //removeChildNode(focus)
-          focusNode(d.parent);
-          loadDataForNode(d.parent).then(() => {
-            transitionText(focus);
-          });
         }
-
-        // Check transition into focus
-        if (focus.r * zoomFactor < diameter / this.factorWhenToLoadNewData) { // is not big enough
-          console.log("zooming out")
+        // else if ((focus != d.parent) && isNear(d.parent)) { // make sure that parent is focused
+        //   console.log("same layer")
+        //   // Lade auf selber ebene
+        //   //removeChildNodesOfNode(focus)
+        //   focusNode(d.parent);
+        //   loadDataForNode(d.parent).then(() => {
+        //     transitionText(focus);
+        //   });
+        // }
+        // Check zoomed out of focus
+        if (!isNear(focus)) { // is not big enough
           if (focus.parent) {
-            removeChildNode(focus)
+            console.log("zooming out");
+            removeChildNodesOfNode(focus)
             focus = focus.parent;
             currentDepth = focus.depth;
             transitionText(focus)
@@ -312,9 +320,9 @@ export class CirclesComponent implements OnInit {
           // TODO: Zoom out
         });
 
-      let d3zoom = d3.zoom()
+      var d3zoom = d3.zoom()
         .on("zoom", zoomed)
-        .on("zoomend", zoomStartEnd);
+        .on("end", zoomStartEnd);
       svg.call(d3zoom);
 
 

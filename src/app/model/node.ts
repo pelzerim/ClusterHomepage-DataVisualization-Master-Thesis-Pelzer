@@ -10,7 +10,7 @@ export class D3Node implements D3NodeInterface {
   isInFocus: boolean = false;
 
   didLoadChildren: boolean = false;
-  children: D3Node[];
+  children: D3NodeInterface[];
   private _id : string = Guid.newGuid();
 
   constructor(public name: string,
@@ -37,14 +37,13 @@ export class D3Node implements D3NodeInterface {
 export class RelD3Node extends D3Node {
   didLoadChildren: boolean = false;
 
-
   constructor(public name: string,
               public size: number,
               public tableName: string,
               public  externalId: string,
               private data : DataRelService) {
     super(name, size);
-    this.name = name.substring(0, 24).concat((name.length > 24) ? "..." : "");
+    this.name = name.substring(0, 24).concat((name.length > 24) ? "..." : ""); // TODO: (1) Anzahl Characters
   }
   public loadChildren(): Promise<D3Node[]> {
     if (this.children) { // Has children already, returning them
