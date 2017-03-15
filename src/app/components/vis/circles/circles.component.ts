@@ -2,7 +2,6 @@ import {Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsul
 import * as d3 from 'd3';
 import {DataRelService} from "../../../services/relational/data-rel.service";
 import {D3Node} from "../../../model/node";
-import {D3NodeInterface} from "../../../model/d3NodeInterface";
 
 @Component({
   selector: 'vis-circles',
@@ -23,21 +22,15 @@ export class CirclesComponent implements OnInit {
   }
 
   ngOnInit() {
-    //this.createChart();
     this.createCircles();
-    // if (this.data) {
-    //   this.updateChart();
-    // }
   }
 
-  ngOnChanges() {
-  }
+  //ngOnChanges() {}
 
   createCircles() {
     let element = this.chartContainer.nativeElement; // Direkter link auf chart
     this.width = element.offsetWidth;
     this.height = element.offsetHeight;
-    console.log(this.width)
 
     let svg = d3.select(element).append('svg')
       .attr('width', element.offsetWidth)
@@ -54,13 +47,11 @@ export class CirclesComponent implements OnInit {
     //   .interpolate(d3.interpolateHcl); // Ne farbe in nem kontinurierlichen Spektrum  https://github.com/d3/d3-scale/blob/master/README.md#scaleLinear
 
     let pack = d3.pack()
-      .size([diameter, diameter])
+      .size([diameter, diameter]);
     //.padding(2); // Erstellt packlayout, aber noch nix drin
 
-    var root;
+    let root; // Root node
     this.relData.getRoot().then((rootObject) => {
-      //if (error) throw error;
-
       root = d3.hierarchy(rootObject) // Macht ne hierachie aus den daten/Erweitert daten mit werten wie data,depth, height, parent usw
         .sum(function (d: any) {
           return d.size;
@@ -77,7 +68,6 @@ export class CirclesComponent implements OnInit {
 
       // START seamless zoom
       let transform = null;
-
       let translate = (transform) => {
         //g.attr("transform", "translate(" + d3.event.transform.x + "," + d3.event.transform.y + ")" + " scale(" + d3.event.transform.k + ")");
         node.attr("transform", function (d: any) {
@@ -86,12 +76,13 @@ export class CirclesComponent implements OnInit {
         circle.attr("r", function (d: any) {
           return d.r * transform.k;
         });
-      }
+      };
 
       let zoomStartEnd = () => {
         if (d3.event) transform = d3.event.transform;
-        let zoomFactor = transform.k;
         if (!transform) return;
+
+        let zoomFactor = transform.k;
         // g.selectAll("text").style("font-size",  (d: any) => {
         //   return fontSize((10 - (radius / (d.r * zoomFactor))) / 10);
         // })
@@ -99,27 +90,27 @@ export class CirclesComponent implements OnInit {
         // Decide if loading new data
         let d: any = mouseoveredCircle;
         if (!d) {
-          console.log("no mouseover circle")
+          console.log("no mouseover circle");
           return;
         }
 
         // Functions
         let focusNode = (d) => {
-          console.log("focus ", d.data.name)
+          console.log("focus ", d.data.name);
           if (focus != d) {
             focus = d;
             currentDepth = d.depth;
           }
-        }
+        };
 
         // Remove child node
         let removeChildNodesOfNode = (parent) => {
           if (parent && parent.depth > 1) { // Always keep first 2 layers
-            console.log("removeing children " + parent.parent.data.name)
-            let removeChidren = (node) => {
+            console.log("removeing children " + parent.parent.data.name);
+            let removeChidren = (node) => { // Actual removal function
               for (let child of node.children) { // Remove all from this layer
                 if (child.children && child.children.length != 0) {
-                  console.log("removing " + child.data.name)
+                  console.log("removing " + child.data.name);
                   removeChidren(child);
                   nodes = nodes.filter(function (elem) {
                     return child.children.indexOf(elem) === -1;
@@ -129,9 +120,8 @@ export class CirclesComponent implements OnInit {
                   child.children = null; // Das hier ist nicht genug, es müssen auch die kindeskinder gelöscht werden, da sonst die size von Ihnen mit reingerechnet wird
                 }
               }
-            }
-            removeChidren(parent.parent);
-
+            };
+            removeChidren(parent.parent); // Actual removal function
 
             // nodes = nodes.filter( function ( elem ) {
             //   return parent.children.indexOf( elem ) === -1;
@@ -142,24 +132,24 @@ export class CirclesComponent implements OnInit {
             makeCirclesAndText(nodes);
             translate(transform);
           }
+        };
 
-        }
-
+        // Function if node d is big enough
         let isNear = (d) => {
           return d.r * zoomFactor > diameter / this.factorWhenToLoadNewData;
-        }
+        };
 
         // check if mouseover node is near enought to focus
         if (isNear(d)) {
           if (focus != d) {
-            console.log("focus near")
+            console.log("focus near");
             // lade daten weil nah
             focusNode(d);
             loadDataForNode(d).then(() => {
-              transitionText(focus);
+              transitionText();
             });
           } else {
-            console.log("not focussing because already focused")
+            console.log("not focussing because already focused");
           }
         }
         // else if ((focus != d.parent) && isNear(d.parent)) { // make sure that parent is focused
@@ -175,27 +165,27 @@ export class CirclesComponent implements OnInit {
         if (!isNear(focus)) { // is not big enough
           if (focus.parent) {
             console.log("zooming out");
-            removeChildNodesOfNode(focus)
+            removeChildNodesOfNode(focus);
             focus = focus.parent;
             currentDepth = focus.depth;
-            transitionText(focus)
+            transitionText();
           }
 
         }
-      }
+      };
 
       let zoomed = () => {
         if (d3.event) transform = d3.event.transform;
-        let zoomFactor = transform.k;
         if (!transform) return;
-
         translate(transform);
+        zoomStartEnd();
+
+
       };
       // END seamless zoom
 
-
       // START Mouseover
-      let mouseover = (d: any) => {
+      let mouseover = (d: any) => { // TODO: An parent durchgeben
         if (d.depth == currentDepth + 1 || d.depth == currentDepth) {
           mouseoveredCircle = d;
           circle.style("fill", function (e: any) {
@@ -209,7 +199,7 @@ export class CirclesComponent implements OnInit {
       // END Mouseover
 
       // START Transition of text
-      let transitionText = (d) => {
+      let transitionText = () => {
         //let transition = d3.;
         text.transition().duration(750)
           .filter(function (d: any) {
@@ -228,7 +218,7 @@ export class CirclesComponent implements OnInit {
         circle.transition()
           .style("fill", function (d: any) {
             return d == focus ? "red" : d.data.color();
-          })
+          });
         // .style("display", function (d: any) { // Only show curremtdepth -1 & +1
         //   return (d.depth >= currentDepth - 1 ) && (d.depth <= currentDepth + 1 ) ? "" : "none"; // TODO: Kommt auch woanders hin?
         // })
@@ -249,7 +239,7 @@ export class CirclesComponent implements OnInit {
         circle = g.selectAll("circle")
           .data(nodes, (d: any) => {
             return d.data.id()
-          })
+          });
         circle.enter().append("circle")
           .attr("class", function (d: any) {
             return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
@@ -258,22 +248,25 @@ export class CirclesComponent implements OnInit {
             return d.data.color();
           })
           .on("click", function (d) {
-            if (focus !== d) loadDataForNode(d);
+            if (focus !== d) {
+              mouseover(d);
+              zoomStartEnd();
+            }
             d3.event.stopPropagation();
           })
           .on("mouseover", function (d: any) {
             mouseover(d);
           })
-        circle.exit().remove()
-        circle = g.selectAll("circle")
+          .on("mousemove", function (d: any) {
+            mouseover(d)
+          });
 
-        // .on("mousemove", function (d: any) {
-        //   mouseover(d)
-        // });
-        ;
+        circle.exit().remove();
+        circle = g.selectAll("circle");
+
         text = g.selectAll("text")
           .data(nodes, (d: any) => {
-            return d.data.id()
+            return d.data.id();
           })
           .enter().append("text")
           .attr("class", "label")
@@ -289,9 +282,8 @@ export class CirclesComponent implements OnInit {
           .text(function (d: any) {
             //console.log(d)
             return d.data.name;// + " d:" + d.depth;
-
           });
-        text.exit().remove()
+        text.exit().remove();
 
         // icons = g.selectAll("icons")
         //   .data(nodes, (d:D3NodeInterface)=> {return d.data.id()})
@@ -308,10 +300,10 @@ export class CirclesComponent implements OnInit {
         node = g.selectAll("circle,text");
 
         // This needs to happen
-      }
+      };
       // END make circles enter
 
-      var circle, text, node, icons;
+      let circle, text, node;// icons;
       makeCirclesAndText(nodes);
 
       svg
@@ -320,9 +312,9 @@ export class CirclesComponent implements OnInit {
           // TODO: Zoom out
         });
 
-      var d3zoom = d3.zoom()
-        .on("zoom", zoomed)
-        .on("end", zoomStartEnd);
+      let d3zoom = d3.zoom()
+        .on("zoom", zoomed);
+        //.on("end", zoomStartEnd);
       svg.call(d3zoom);
 
 
@@ -358,7 +350,7 @@ export class CirclesComponent implements OnInit {
 
               let nodes = pack(d3NodeParentElementClone).descendants();
               // absolute x,y coordinates calculation
-              var curChildnode;
+              let curChildnode;
               for (let i = 1; i < nodes.length; i++) {
                 curChildnode = nodes[i];
                 curChildnode.x = curChildnode.x - nodes[0].x + d3NodeParentElement.x;
@@ -370,7 +362,7 @@ export class CirclesComponent implements OnInit {
 
 
               return nodes;
-            }
+            };
             // END virtual nodes
 
             // START add nodes
@@ -388,25 +380,25 @@ export class CirclesComponent implements OnInit {
           });
         } else {
           //console.log("Already loaded, only zooming");
-          return new Promise<any>((resolve, reject) => {
+          return new Promise<any>((resolve) => {
             resolve(true);
           });
         }
-      }
+      };
 
       /**
        * Zoom to node d
        * @param d
        */
       let zoom = (d) => {
-        let focus0 = focus;
+        //let focus0 = focus;
         focus = d;
 
         // START The zoom
         let transition = d3.transition("bla")
           .duration(750)
-          .tween("zoom", function (d) {
-            var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]); // was focus.r * 2 + margin
+          .tween("zoom", function () {
+            let i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]); // was focus.r * 2 + margin
             return function (t) {
               zoomTo(i(t));
             };
@@ -426,23 +418,21 @@ export class CirclesComponent implements OnInit {
             if (d.parent !== focus) this.style.display = "none";
           });
         // END The zoom
-
       };
 
-
+      // START Old zoom
       function zoomTo(v) { // v ) [x,y, diameter] of circle
-        var k = diameter / v[2]; // Fa
+        let k = diameter / v[2]; // Fa
         view = v;
         node.attr("transform", function (d: any) {
-          // console.log("translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")");
-          // console.log(d)
-          // console.log(v)
           return "translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")";
         });
         circle.attr("r", function (d: any) {
           return d.r * k;
         });
       }
+
+      // END Old zoom
     });
   }
 
