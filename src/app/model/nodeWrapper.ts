@@ -1,6 +1,7 @@
 import {D3NodeInterface} from "./d3NodeInterface";
 import {Color} from "./colors";
 import {Guid} from "./GUID";
+import {DataRelService} from "../services/relational/data-rel.service";
 /**
  * Created by immanuelpelzer on 08.03.17.
  */
@@ -8,23 +9,25 @@ export class D3ConceptWrapper implements D3NodeInterface {
 
   isInFocus: boolean = true;
   private _id : string = Guid.newGuid();
-  didLoadChildren: boolean = true;
-  public size: number;
+  didLoadChildren: boolean = false;
 
   constructor(public name: string,
-              public children: any[]) {
+              public children: any[],
+              public size: number) {
     // calculate wrapper size
-    let s = 0;
-    for (let child of children) {
-      s += child.size;
-    }
 
-    this.size = s;
+
   }
 
   loadChildren(): Promise<any[]> {
     return new Promise<any>((resolve, reject) => {
-      resolve(this.children);
+      if (this.children) {
+        this.didLoadChildren = true;
+        resolve(this.children);
+      } else {
+        reject(new Error("No children in concept wrapper " + this.name))
+      }
+
     });
   }
 
@@ -41,12 +44,29 @@ export class D3ConceptWrapper implements D3NodeInterface {
 export class RelD3ConceptWrapper extends D3ConceptWrapper {
   constructor(public name: string,
               public children: any[],
-              public tableName: string) {
-    super(name, children);
+              public size:number,
+              public tableName: string,
+              public data : DataRelService) {
+    super(name, children, size);
   }
 
   color(): string {
     return Color.colorForTable(this.tableName);
+  }
+
+  loadChildren(): Promise<any[]> {
+    return new Promise<any>((resolve, reject) => {
+      console.log(this.children)
+      if (this.children) {
+        this.didLoadChildren = true;
+        resolve(this.children);
+      } else {
+        this.data.getAllFromTable(this).then((c) => {
+          this.didLoadChildren = true;
+          resolve(c);
+        })
+      }
+    });
   }
 
 }

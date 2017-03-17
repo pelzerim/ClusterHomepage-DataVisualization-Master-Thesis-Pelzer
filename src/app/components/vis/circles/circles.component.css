@@ -28,17 +28,22 @@
   font-size: 11px;
   margin-top: 10px;
   text-anchor: middle;
+  dominant-baseline: central;
   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
-  max-width:20px;
+  pointer-events: none;
+
 }
 
 .icon {
   font-family:FontAwesome;
-  font-size: 10px;
   text-anchor: middle;
-
+  dominant-baseline: central;
+  font-size: 20px;
+  pointer-events: none;
+  fill: white ;
+  display: inline;
+  fill-opacity: 1;
 }
-
 .label,
 .node--root,
 .node--leaf {

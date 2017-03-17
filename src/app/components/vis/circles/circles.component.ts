@@ -2,6 +2,7 @@ import {Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsul
 import * as d3 from 'd3';
 import {DataRelService} from "../../../services/relational/data-rel.service";
 import {D3Node} from "../../../model/node";
+import {D3NodeInterface} from "../../../model/d3NodeInterface";
 
 @Component({
   selector: 'vis-circles',
@@ -13,10 +14,12 @@ import {D3Node} from "../../../model/node";
 export class CirclesComponent implements OnInit {
   @ViewChild('chart') private chartContainer: ElementRef;
   @Input() private data: Array<any>;
-  private factorWhenToLoadNewData = 6; // caclulates diamater / factorWhenToLoadNewData
+  private factorWhenToLoadNewData = 0.6; // caclulates diamater * factorWhenToLoadNewData
   private chart: any;
   private width: number;
   private height: number;
+  public selectedData: D3NodeInterface;
+  public focusedNodesLadder = [];
 
   constructor(private relData: DataRelService) {
   }
@@ -38,6 +41,8 @@ export class CirclesComponent implements OnInit {
     // Hinzufügen, und selekteieren (append) von setzen von width & height (attr)
     let diameter = +svg.attr("width");
     let radius = diameter / 2;
+    let diameterMinus = diameter * this.factorWhenToLoadNewData;
+    console.log(diameterMinus)
     let g = svg.append("g").attr("transform", "translate(" + radius + "," + radius + ")"); // Rücken in die mitte
 
     let fontSize = d3.interpolateNumber(2, 20);
@@ -63,20 +68,86 @@ export class CirclesComponent implements OnInit {
       let focus = root,
         nodes: any = pack(root).descendants(), // pack(root) Legt die kreise aus, verteilt x,y koordinaten und radius; descendants: array of descendant nodes
         view,
-        mouseoveredCircle,
+        mouseoveredCircle, mouseoveredCircleSelection,
         currentDepth = 0;
+      this.focusedNodesLadder.push(root);
 
       // START seamless zoom
-      let transform = null;
+      let transform = {k: 1};
+      let transform0 = {k: 1};
       let translate = (transform) => {
         //g.attr("transform", "translate(" + d3.event.transform.x + "," + d3.event.transform.y + ")" + " scale(" + d3.event.transform.k + ")");
-        node.attr("transform", function (d: any) {
+        node.attr("transform", function (d: any) { // Translate everything
           return "translate(" + ((transform.x + d.x * transform.k) - radius) + "," + ((transform.y + d.y * transform.k ) - radius) + ")";
         });
-        circle.attr("r", function (d: any) {
+        circle.attr("r", function (d: any) { // Radius of everything
           return d.r * transform.k;
         });
+
+        if (mouseoveredCircleSelection) {
+          mouseoveredCircleSelection.style("fill-opacity", function (e: any) { // Do zoom effect
+            //console.log(e.data.name)
+            if (e == mouseoveredCircle) {
+              return (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) - 0.1
+            } else {
+              return 1;
+            }
+          });
+        }
+
+        adjustFontSizeForCurrentFocus();
+
+        transform0 = transform;
+
       };
+
+
+      // START Adjust font size
+      let adjustFontSizeForCurrentFocus = () =>{
+
+        let currentText = text.filter(function (d: any) {
+          return d.parent == focus;
+        });
+
+        currentText
+          .each(function(d , i) {
+            let sel = d3.select(this);
+            sel.style("font-size", function (d : any) { // Do font of icons
+              let size;
+              if (sel.attr("class") == "icon") {
+                size = d.r * transform.k / 3;
+              } else {
+                size = d.r * transform.k / (d.data.name.length + 3);
+              }
+              size *= 10 / 2;
+              size += 1;
+              // if (sel.attr("class") != "icon") {
+              //   console.log(Math.round(size))
+              // }
+
+              return Math.round(size) + 'px';
+            });
+
+          })
+
+        // currentText.filter(".icon")
+        //   .style("font-size", function (d) { // Do font of icons
+        //     var size = d.r * transform.k / 3;
+        //     size *= 10 / 2;
+        //     size += 1;
+        //     return Math.round(size) + 'px';
+        //   })
+        //
+        // currentText.filter(".label")
+        //   .style("font-size", function (d) { // Do font of icons
+        //     //console.log(d)
+        //     var size = d.r * transform.k / (d.data.name.length + 3);
+        //     size *= 10 / 2;
+        //     size += 1;
+        //     return Math.round(size) + 'px';
+        //   })
+      };
+      // END Adjust font size
 
       let zoomStartEnd = () => {
         if (d3.event) transform = d3.event.transform;
@@ -89,23 +160,34 @@ export class CirclesComponent implements OnInit {
 
         // Decide if loading new data
         let d: any = mouseoveredCircle;
-        if (!d) {
-          console.log("no mouseover circle");
-          return;
-        }
-
         // Functions
-        let focusNode = (d) => {
-          console.log("focus ", d.data.name);
+        let focusNode = (d): Promise<boolean> => {
           if (focus != d) {
+            console.log("focus ", d.data.name);
+            if (d.depth > currentDepth) { // go in
+              this.focusedNodesLadder.push(d);
+            } else if (d.depth == currentDepth) { // stay same level
+              this.focusedNodesLadder.pop();
+              this.focusedNodesLadder.push(d);
+            } else { // go out
+              this.focusedNodesLadder.pop();
+            }
             focus = d;
+            mouseoveredCircle = null;
             currentDepth = d.depth;
+            return new Promise<any>((resolve) => {
+              resolve(true);
+            });
+          } else {
+            return new Promise<any>((resolve) => {
+              resolve(false);
+            });
           }
         };
 
         // Remove child node
-        let removeChildNodesOfNode = (parent) => {
-          if (parent && parent.depth > 1) { // Always keep first 2 layers
+        let removeChildNodesOfNode = (parent, depth) => {
+          if (parent && depth > 1) { // Always keep first 2 layers
             console.log("removeing children " + parent.parent.data.name);
             let removeChidren = (node) => { // Actual removal function
               for (let child of node.children) { // Remove all from this layer
@@ -118,10 +200,11 @@ export class CirclesComponent implements OnInit {
                   child.data.children = null;
                   child.data.didLoadChildren = false;
                   child.children = null; // Das hier ist nicht genug, es müssen auch die kindeskinder gelöscht werden, da sonst die size von Ihnen mit reingerechnet wird
+
                 }
               }
             };
-            removeChidren(parent.parent); // Actual removal function
+            removeChidren(parent); // Actual removal function
 
             // nodes = nodes.filter( function ( elem ) {
             //   return parent.children.indexOf( elem ) === -1;
@@ -129,6 +212,7 @@ export class CirclesComponent implements OnInit {
             // parent.data.didLoadChildren = false;
             // parent.children = [];
             text.remove();
+
             makeCirclesAndText(nodes);
             translate(transform);
           }
@@ -136,21 +220,43 @@ export class CirclesComponent implements OnInit {
 
         // Function if node d is big enough
         let isNear = (d) => {
-          return d.r * zoomFactor > diameter / this.factorWhenToLoadNewData;
+          return d.r * 2 * zoomFactor > diameterMinus;
         };
 
         // check if mouseover node is near enought to focus
-        if (isNear(d)) {
+        if (!d) {
+          // Noting
+        }
+        else if (isNear(d)) {
           if (focus != d) {
             console.log("focus near");
+            // if (d.depth != currentDepth) {
+            //   removeChildNodesOfNode(focus, focus.depth);
+            // }
             // lade daten weil nah
-            focusNode(d);
-            loadDataForNode(d).then(() => {
-              transitionText();
+            focusNode(d).then((didFocus) => {
+              if (didFocus) {
+                loadDataForNode(d).then(() => {
+                  transitionText();
+                });
+              }
             });
+
           } else {
             console.log("not focussing because already focused");
           }
+        } else if (!isNear(d)) { // check if parent is on same level as now and focus if so
+          if (d.parent.depth == currentDepth) {
+            focusNode(d.parent).then((didFocus) => {
+              if (didFocus) {
+                console.log("focusing parent on same level as currentdeopth")
+                loadDataForNode(focus).then(() => {
+                  transitionText();
+                });
+              }
+            });
+          }
+
         }
         // else if ((focus != d.parent) && isNear(d.parent)) { // make sure that parent is focused
         //   console.log("same layer")
@@ -164,11 +270,14 @@ export class CirclesComponent implements OnInit {
         // Check zoomed out of focus
         if (!isNear(focus)) { // is not big enough
           if (focus.parent) {
+
             console.log("zooming out");
-            removeChildNodesOfNode(focus);
-            focus = focus.parent;
-            currentDepth = focus.depth;
-            transitionText();
+            //let focus0 = focus.parent;
+            focusNode(focus.parent).then((didFocus) => {
+              transitionText();
+              //removeChildNodesOfNode(focus0.parent, focus0.depth);
+            })
+
           }
 
         }
@@ -176,21 +285,38 @@ export class CirclesComponent implements OnInit {
 
       let zoomed = () => {
         if (d3.event) transform = d3.event.transform;
-        if (!transform) return;
+        if (!transform) {
+          console.log("no transofrm")
+          return;
+        }
         translate(transform);
         zoomStartEnd();
-
-
       };
       // END seamless zoom
 
+
       // START Mouseover
-      let mouseover = (d: any) => { // TODO: An parent durchgeben
+      let mouseover = (d: any) => {
         if (d.depth == currentDepth + 1 || d.depth == currentDepth) {
-          mouseoveredCircle = d;
-          circle.style("fill", function (e: any) {
-            return e == d ? "orange" : e.data.color();
+          // if (d.parent != focus) {
+          //   mouseoveredCircle = d.parent;
+          // } else {
+
+          // }
+          // console.log(d.data.name)
+          mouseoveredCircleSelection = circle.filter(function (e: any) {
+            return e == mouseoveredCircle || e == d;
+          })
+          mouseoveredCircleSelection.style("fill-opacity", function (e: any) {
+            //console.log(e.data.name)
+            if (e == d) {
+              return (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) - 0.1
+            } else {
+              return 1;
+            }
           });
+          mouseoveredCircle = d;
+
           d3.event.stopPropagation();
         } else if (d.parent) {
           mouseover(d.parent);
@@ -198,32 +324,59 @@ export class CirclesComponent implements OnInit {
       };
       // END Mouseover
 
+      let isInFocusLadder = (d) => {
+        return this.focusedNodesLadder.indexOf(d) != -1;
+      }
+
       // START Transition of text
       let transitionText = () => {
-        //let transition = d3.;
-        text.transition().duration(750)
-          .filter(function (d: any) {
-            return d.parent == focus || this.style.display === "inline"; // old  d.depth === currentDepth + 1
-          })
-          .style("fill-opacity", function (d: any) {
-            return d.parent == focus ? 1 : 0;
-          })
-          .on("start", function (d: any) {
-            if (d.parent == focus) this.style.display = "inline";
-          })
-          .on("end", function (d: any) {
-            if (d.parent !== focus) this.style.display = "none";
+        // text.filter(".label") // TEXT
+        // // .filter(function (d: any) {
+        // //   return d.parent == focus || d == focus || isInFocusLadder(d); // old  d.depth === currentDepth + 1
+        // // })
+        // //   .style("fill-opacity", function (d: any) {
+        // //     //console.log("node ", d.data.name, _dhis.focusedNodesLadder.indexOf(d) != -1)
+        // //     return (d.parent == focus && !isInFocusLadder(d)) ? 1 : 0;
+        // //   })
+        //   .style("display", function (d: any) {
+        //     //console.log("node ", d.data.name, _dhis.focusedNodesLadder.indexOf(d) != -1)
+        //     return (d.parent == focus && !isInFocusLadder(d)) ? "inline" : "none";
+        //   });
+        text.each(function(d, i) {
+            d3.select(this).style("display", function (d: any) { // Only show curremtdepth -1 & +1
+              return (d.parent == focus) || (d.depth == currentDepth && d != focus) ? "inline" : "none";
+              //return (d.depth >= currentDepth - 2 ) && (d.depth <= currentDepth + 1 ) ? "inline" : "none"; // TODO: Kommt auch woanders hin?
+            })
+          });
+          // .filter(".icon") // ICONS
+
+
+        adjustFontSizeForCurrentFocus();
+        // .filter(function (d: any) {
+        //   return d.parent == focus || d == focus; // old  d.depth === currentDepth + 1
+        // })
+        // .on("start", function (d: any) {
+        //
+        // })
+        // .on("end", function (d: any) {
+        //   if (_dhis.focusedNodesLadder.indexOf(d) != -1) this.style.display = "none";
+        // });
+
+        // circle.transition()
+        //   .filter(function (d: any) {
+        //     return d == focus; // old  d.depth === currentDepth + 1
+        //   })
+        // circle.style("fill", function (d: any) {
+        //   return d == focus ? "red" : d.data.color();
+        // });
+
+        circle
+          .style("display", function (d: any) { // Only show curremtdepth -1 & +1
+            return (d.parent == focus) || ((d.depth >= currentDepth - 2 ) && (d.depth <= currentDepth)) ? "inline" : "none";
           });
 
-        circle.transition()
-          .style("fill", function (d: any) {
-            return d == focus ? "red" : d.data.color();
-          });
-        // .style("display", function (d: any) { // Only show curremtdepth -1 & +1
-        //   return (d.depth >= currentDepth - 1 ) && (d.depth <= currentDepth + 1 ) ? "" : "none"; // TODO: Kommt auch woanders hin?
-        // })
         // circle.exit().remove();
-        text.exit().remove();
+        //text.exit().remove();
         // icons = g.selectAll("icons")
         //   .style("fill-opacity", function (d: any) {
         //     return d.parent === root ? 1 : 0;
@@ -244,13 +397,9 @@ export class CirclesComponent implements OnInit {
           .attr("class", function (d: any) {
             return d.parent ? d.children ? "node" : "node node--leaf" : "node node--root";
           })
-          .style("fill", function (d: any) {
-            return d.data.color();
-          })
-          .on("click", function (d) {
+          .on("click", (d) => {
             if (focus !== d) {
-              mouseover(d);
-              zoomStartEnd();
+              this.selectedData = d.data;
             }
             d3.event.stopPropagation();
           })
@@ -259,23 +408,35 @@ export class CirclesComponent implements OnInit {
           })
           .on("mousemove", function (d: any) {
             mouseover(d)
-          });
+          })
+          // .style("fill-opacity", 0)
+          //.transition().duration(2000)
+          .style("fill-opacity", 1)
+          .style("fill", function (d: any) {
+            return d.data.color();
+          })
+        //.transition()
+        ;
 
-        circle.exit().remove();
+        //circle.exit().remove();
         circle = g.selectAll("circle");
 
         text = g.selectAll("text")
           .data(nodes, (d: any) => {
             return d.data.id();
           })
-          .enter().append("text")
+        text.enter().append('text')
+          .attr("class", "icon")
+
+          .text(function (d) {
+            return '\uf118'
+          });
+        text.enter().append("text")
           .attr("class", "label")
           .style("fill-opacity", function (d: any) {
-            return d.parent === root ? 1 : 0;
+            return 1;
           })
-          .style("display", function (d: any) {
-            return d.parent === root ? "inline" : "none";
-          })
+          .style("display", "inline")
           // .style("font-size",  (d: any) => {
           //   return fontSize((100 - this.width / d.r) / 100);
           // })
@@ -283,7 +444,9 @@ export class CirclesComponent implements OnInit {
             //console.log(d)
             return d.data.name;// + " d:" + d.depth;
           });
-        text.exit().remove();
+
+        //text.exit().remove();
+        text = g.selectAll("text");
 
         // icons = g.selectAll("icons")
         //   .data(nodes, (d:D3NodeInterface)=> {return d.data.id()})
@@ -303,8 +466,11 @@ export class CirclesComponent implements OnInit {
       };
       // END make circles enter
 
+
       let circle, text, node;// icons;
+      //focus = root;
       makeCirclesAndText(nodes);
+      transitionText();
 
       svg
         .style("background", "white") // background color of svg
@@ -313,13 +479,13 @@ export class CirclesComponent implements OnInit {
         });
 
       let d3zoom = d3.zoom()
+        .scaleExtent([0.9, Infinity])
         .on("zoom", zoomed);
-        //.on("end", zoomStartEnd);
+      //.on("end", zoomStartEnd);
       svg.call(d3zoom);
 
 
       zoomTo([root.x, root.y, root.r * 2]);
-
 
       let loadDataForNode = (d): Promise<any> => {
         if (!d.data.didLoadChildren) {
@@ -369,7 +535,7 @@ export class CirclesComponent implements OnInit {
             let virtualNodes = virtualNodesByParentNode(d, children);
             d.children = virtualNodes;
             nodes.push.apply(nodes, virtualNodes);
-            text.remove();
+            //text.remove();
             makeCirclesAndText(nodes);
             // zoom to current focus again (do the transformation of the updated elements)
             //zoomTo(view);
