@@ -56,7 +56,6 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
 
   loadChildren(): Promise<any[]> {
     return new Promise<any>((resolve, reject) => {
-      console.log(this.children)
       if (this.children) {
         this.didLoadChildren = true;
         resolve(this.children);

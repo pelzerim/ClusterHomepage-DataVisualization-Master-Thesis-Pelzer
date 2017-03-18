@@ -12,7 +12,7 @@ import {D3NodeInterface} from "../../model/d3NodeInterface";
 export class DataRelService {
 
   private baseUrl = 'http://localhost:8888';
-  private allClusterConcepts =
+  private static allClusterConcepts =
     {
       "content_ausstellung": "Ausstellungen",
       "content_kooperation": "Kooperationen",
@@ -26,6 +26,21 @@ export class DataRelService {
       // ,"content_publikation": "Publikationen"
     }
 
+
+  public static iconForTableName =
+    {
+      "content_ausstellung": "\uf03e",
+      "content_kooperation": "\uf19c",
+      "content_mitglied": "\uf007",
+      "content_nachwuchsfoerderung": "\uf1ae",
+      "content_newsletter": "\uf1ea",
+      "content_podcast": "\uf2ce",
+      "content_post": "\uf27b",
+      "content_pressemitteilung": "\uf1ea",
+      "content_projekt": "\uf0c0"
+      ,"content_publikation": "\uf0f6"
+    }
+
   constructor(private http: Http) {
   }
 
@@ -33,9 +48,9 @@ export class DataRelService {
     // Make Cluster
     let children: D3NodeInterface[] = [];
     let promises = [];
-    for (let tableName in this.allClusterConcepts) {
+    for (let tableName in DataRelService.allClusterConcepts) {
       promises.push(
-        this.getCountOfChildrenFromTable(tableName, this.allClusterConcepts[tableName]).then((node) => {
+        this.getCountOfChildrenFromTable(tableName, DataRelService.allClusterConcepts[tableName]).then((node) => {
           children.push(node);
         })
       )
