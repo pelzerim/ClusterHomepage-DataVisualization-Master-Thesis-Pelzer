@@ -1,0 +1,17 @@
+.sidebar {
+  overflow-y:scroll;
+}
+
+.bold {
+  font-weight: bolder;
+}
+
+.thin-border {
+  border: solid;
+  border-width: 1px;
+}
+
+.nopadding {
+  padding: 0 !important;
+  margin: 0 !important;
+}

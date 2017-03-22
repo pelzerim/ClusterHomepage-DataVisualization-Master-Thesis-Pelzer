@@ -1,1 +1,68 @@
-<vis-circles *ngIf="chartData" [data]="chartData"></vis-circles>
+<!--<nav class="navbar navbar-default">-->
+<!--<div class="container-fluid">-->
+<!--&lt;!&ndash; Brand and toggle get grouped for better mobile display &ndash;&gt;-->
+<!--<div class="navbar-header">-->
+<!--<a class="navbar-brand" >BWG Visualization</a>-->
+<!--</div>-->
+<!-- Collect the nav links, forms, and other content for toggling -->
+<!--<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">-->
+<!--<ul class="nav navbar-nav navbar-right">-->
+<!--<li class="dropdown">-->
+<!--<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Data type <span class="caret"></span></a>-->
+<!--<ul class="dropdown-menu">-->
+<!--<li><a href="#">Relational data</a></li>-->
+<!--<li><a href="#">Semantic data</a></li>-->
+<!--</ul>-->
+<!--</li>-->
+<!--</ul>-->
+<!--</div>&lt;!&ndash; /.navbar-collapse &ndash;&gt;-->
+<!--</div>-->
+<!-- /.container-fluid -->
+<!--</nav>-->
+
+<ol class="breadcrumb">
+  <li *ngIf="data.currentFocusPath.length > maxLenghtOfBreadcrumbs">...</li>
+  <li [ngClass]="{bold: i == data.currentFocusPath.length -1}" *ngFor="let item of last10Focuses(); let i = index">
+    {{item.data.name}}
+    <span class="badge" *ngIf="item.children">{{item.children.length}}
+    </span>
+  </li>
+  <!-- <a (click)="focusNode(item,i)"></a>-->
+</ol>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 nopadding thin-border" >
+      <vis-circles #circles  *ngIf="data" [data]="data"></vis-circles>
+    </div>
+    <div class="sidebar col-md-4 " [style.height]="heightOfSidebar" [style.background-color]="data.currentSelectedData ? data.currentSelectedData.color() : 'white'">
+      <div *ngIf="!data.currentSelectedData">
+        <h3>How to use:</h3>
+        <p>Use your <strong>mouse wheel</strong> or two finger gesture to <strong>zoom</strong> into the data.</p>
+        <p><strong>Click</strong> on a circle to know more.</p>
+        <p><strong>Click and drag</strong> to navigate.</p>
+      </div>
+      <div *ngIf="data.currentSelectedData">
+        <h3>{{data.currentSelectedData.name}}</h3>
+        <div *ngIf="data.currentSelectedData.information">
+          <accordion>
+            <accordion-group #group *ngFor="let informationChunk of data.currentSelectedData.information">
+              <div accordion-heading>
+                {{informationChunk.name()}}
+                <i class="pull-right float-xs-right glyphicon"
+                   [ngClass]="{'glyphicon-chevron-down': group?.isOpen, 'glyphicon-chevron-right': !group?.isOpen}"></i>
+              </div>
+              <div [innerHTML]="informationChunk.content()"></div>
+            </accordion-group>
+          </accordion>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+</div>
+
+
+

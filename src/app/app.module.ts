@@ -10,6 +10,7 @@ import { HomeComponent } from './components/home/home.component';
 import { routing, appRoutingProviders } from './app.routes';
 import {DataRelService} from "./services/relational/data-rel.service";
 
+import { AccordionModule } from 'ng2-bootstrap/accordion';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import {DataRelService} from "./services/relational/data-rel.service";
     BrowserModule,
     FormsModule,
     HttpModule,
-    routing
+    routing,
+    AccordionModule.forRoot()
   ],
   providers: [appRoutingProviders, DataRelService],
   bootstrap: [AppComponent]

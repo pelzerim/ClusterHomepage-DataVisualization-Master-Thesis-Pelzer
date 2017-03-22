@@ -9,6 +9,8 @@ export interface D3NodeInterface {
   isInFocus : boolean;
 
   loadChildren(): Promise<any[]>;
+  loadInformation() : Promise<any[]>;
   color() : string; // should return css
   id():string;
+  nameShort():string;
 }
