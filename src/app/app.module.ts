@@ -11,6 +11,7 @@ import { routing, appRoutingProviders } from './app.routes';
 import {DataRelService} from "./services/relational/data-rel.service";
 
 import { AccordionModule } from 'ng2-bootstrap/accordion';
+import { TooltipModule } from 'ng2-bootstrap/tooltip';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { AccordionModule } from 'ng2-bootstrap/accordion';
     FormsModule,
     HttpModule,
     routing,
-    AccordionModule.forRoot()
+    AccordionModule.forRoot(),
+    TooltipModule.forRoot()
   ],
   providers: [appRoutingProviders, DataRelService],
   bootstrap: [AppComponent]

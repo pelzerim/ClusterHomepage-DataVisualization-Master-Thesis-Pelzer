@@ -5,22 +5,21 @@
 
 .node {
   cursor: pointer;
-  stroke: #000;
-  stroke-width: 0.1px;
+  /*stroke: #000;*/
+  stroke-width: 5px;
+  /*border-radius: 50%;*/
+  /*border-style: dashed;*/
 }
 
+
 .node:hover {
-  stroke: #000;
-  stroke-width: 1.5px;
+  /*stroke: #000;*/
+  /*stroke-width: 1.5px;*/
 }
 
 .node-focus {
-  stroke: red !important;
-  stroke-width: 1.5px;
-}
-
-.node--leaf {
-  fill: white;
+  /*stroke: white !important;*/
+  stroke-width: 25px;
 }
 
 .label {
@@ -29,7 +28,7 @@
   margin-top: 10px;
   text-anchor: middle;
   dominant-baseline: central;
-  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+  /*text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;*/
   pointer-events: none;
 
 }
@@ -47,4 +46,17 @@
 .node--root,
 .node--leaf {
   /*pointer-events: none;*/
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: left;
+  width: 230px;
+
+  padding: 6px;
+  font: 18px sans-serif;
+  background: lightgray;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
 }

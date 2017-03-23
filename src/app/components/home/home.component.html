@@ -46,7 +46,7 @@
         <h3>{{data.currentSelectedData.name}}</h3>
         <div *ngIf="data.currentSelectedData.information">
           <accordion>
-            <accordion-group #group *ngFor="let informationChunk of data.currentSelectedData.information">
+            <accordion-group  isOpen="true" #group *ngFor="let informationChunk of data.currentSelectedData.information">
               <div accordion-heading>
                 {{informationChunk.name()}}
                 <i class="pull-right float-xs-right glyphicon"

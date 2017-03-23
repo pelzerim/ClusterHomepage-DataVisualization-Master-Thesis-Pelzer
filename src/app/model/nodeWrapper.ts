@@ -20,7 +20,6 @@ export class D3ConceptWrapper implements D3NodeInterface {
   constructor(public name: string,
               public children: any[],
               public size: number) {
-    // calculate wrapper size
     this._nameShort = name.substring(0, 24).concat((name.length > 24) ? "..." : "");  //TODO: (1) How many chars
 
 
@@ -59,6 +58,8 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
               public tableName: string,
               public data : DataRelService) {
     super(name, children, size);
+    this.size = 200 + size;
+
   }
 
   color(): string {

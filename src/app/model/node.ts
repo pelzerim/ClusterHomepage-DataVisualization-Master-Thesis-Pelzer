@@ -59,6 +59,7 @@ export class RelD3Node extends D3Node {
               private data : DataRelService,
               public parent : D3NodeInterface) {
     super(name, size);
+    this.size = 10 + size;
   }
   public loadChildren(): Promise<D3Node[]> {
     if (this.children) { // Has children already, returning them
