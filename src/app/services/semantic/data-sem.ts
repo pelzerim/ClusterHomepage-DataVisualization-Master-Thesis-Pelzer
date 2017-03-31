@@ -11,6 +11,8 @@ import {D3NodeInterface} from "../../model/d3NodeInterface";
 import {D3DataService} from "../dataServiceInterface";
 import {InformationChunk, SemanticInformationChunk, SemData, SemDataURI} from "../../model/InformationChunk";
 import {ColorMode} from "../../model/colors";
+import {FCFilter, FacettedSearch} from "../../model/facettedSearch";
+import {BenchmarkService, BenchmarkTask} from "../benchmark";
 
 
 @Injectable()
@@ -21,12 +23,12 @@ export class DataSemService implements D3DataService {
 
   currentSelectedData: D3NodeInterface;
   currentFocusPath: D3NodeInterface[];
-
+  currentMode = "sparql";
   private baseUrl = 'http://localhost:8888';
 
   public static iconForTableName =  {}; // Not using icons
 
-  constructor(private http: Http) {
+  constructor(private http: Http, private benchmark : BenchmarkService) {
     this.currentFocusPath = [];
   }
 
@@ -34,9 +36,11 @@ export class DataSemService implements D3DataService {
     let url = this.baseUrl + "/semantic/root";
     console.log("QUERYING: " + url);
     // ...using get request
+    let timer = this.benchmark.timer(BenchmarkTask.GetRoot, this.currentMode);
     return this.http
       .get(url)
       .map((res: Response) => {
+        timer.stop();
         let cluster = new SemD3Node(this); // "Cluster", 0, new SemDataURI(null),  this, null, SemD3NodeType.Class, null
         cluster.name ="Cluster";
         cluster.nameRedo();
@@ -75,7 +79,7 @@ export class DataSemService implements D3DataService {
       .toPromise()
   }
 
-  getPropertiesOfInstance(node: SemD3Node): Promise<D3NodeInterface> {
+  getPropertiesOfInstance(node: SemD3Node, facettedSearch : FacettedSearch): Promise<D3NodeInterface> {
     let encUri = node.uriEncoded();
     if (!encUri) {
       return new Promise<any>((resolve, reject) => {
@@ -85,10 +89,21 @@ export class DataSemService implements D3DataService {
     let url =this.baseUrl + "/semantic/instance/properties/" + node.uriEncoded()  ;
 
     console.log("QUERYING: " + url + " Original URI ("+ node.uri.getValue() + ")");
-    // ...using get request
+    // Prepare filter
+    let payload = {filters: null}
+    let type = BenchmarkTask.GetChildren;
+    if (facettedSearch) {
+      type = BenchmarkTask.GetChildWithFacettedSearch;
+      payload.filters = facettedSearch.getData(); // Stringify payload
+    }
+    let bodyString = JSON.stringify(payload);
+    // Do requerst
+    let timer = this.benchmark.timer(type, this.currentMode);
+
     return this.http
-      .get(url)
+      .post(url, bodyString)
       .map((res: Response) => {
+        timer.stop()
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj.results.bindings) {
@@ -104,7 +119,6 @@ export class DataSemService implements D3DataService {
           newNode.semD3NodeType = SemD3NodeType.Instance;
           newNode.typeURI = new SemDataURI(child.type.value);
           newNode.predicateConnectingParentToThis = new SemDataURI(child.p.value);
-
           let info = [];
           //child.title ? info.push(new SemanticInformationChunk(new SemDataURI("Title"),child.title.value)):null;
           child.comment ? info.push(new SemanticInformationChunk(new SemDataURI("Comment"),child.comment.value)):null;
@@ -112,7 +126,7 @@ export class DataSemService implements D3DataService {
           children.push(newNode)
 
         }
-        node.children = children;
+        //node.children = children;
         return children;
       })
       .catch((error: any) => Observable.throw(error || 'Server error'))
@@ -127,13 +141,16 @@ export class DataSemService implements D3DataService {
           reject(new Error("No children in concept wrapper " + node.name))
       });
     }
-    let url =this.baseUrl + "/semantic/class/properties/" +  encUri ;
+    let url =this.baseUrl + "/semantic/class/properties/" +  encUri;
 
     console.log("QUERYING: " + url + " Original URI ("+ node.uri.getValue() + ")");
     // ...using get request
+    let timer = this.benchmark.timer(BenchmarkTask.GetClass, this.currentMode);
+
     return this.http
       .get(url)
       .map((res: Response) => {
+        timer.stop();
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj.results.bindings) {
@@ -166,13 +183,15 @@ export class DataSemService implements D3DataService {
         reject(new Error("No children in concept wrapper " + node.name))
       });
     }
-    console.log(encUri)
     let url =this.baseUrl + "/semantic/literals/" + encUri ;
     console.log("QUERYING: " + url + " Original URI ("+ node.uri.getValue() + ")");
     // ...using get request
+    let timer = this.benchmark.timer(BenchmarkTask.GetInformation, this.currentMode);
+
     return this.http
       .get(url)
       .map((res: Response) => {
+        timer.stop();
         let obj = res.json();
         let children: InformationChunk[] = [];
         console.log(obj)

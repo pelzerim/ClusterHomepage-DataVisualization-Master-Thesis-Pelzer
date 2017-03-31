@@ -22,10 +22,6 @@
   border-width: 1px;
 }
 
-.nopadding {
-  padding: 0 !important;
-  margin: 0 !important;
-}
 
 .nomargin {
   margin: 0 !important;
@@ -44,5 +40,6 @@ body {
   /*Always show sidebar so tooltip doesnt activate it*/
   overflow-y: scroll !important;
 }
+
 
 /*TAB STYLING IN STYLES.CSS BECAUSE BOOSTRAP*/

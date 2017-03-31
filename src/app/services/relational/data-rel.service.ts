@@ -9,6 +9,9 @@ import {D3NodeInterface} from "../../model/d3NodeInterface";
 import {D3DataService} from "../dataServiceInterface";
 import {InformationChunk} from "../../model/InformationChunk";
 import {ColorMode} from "../../model/colors";
+import {FCFilter} from "../../model/facettedSearch";
+import {FSFacettedSearch} from "../semantic/facettedSearchSemType";
+import {BenchmarkService, BenchmarkTask} from "../benchmark";
 
 
 @Injectable()
@@ -18,7 +21,7 @@ export class DataRelService implements D3DataService {
   }
   currentSelectedData: D3NodeInterface;
   currentFocusPath: D3NodeInterface[];
-
+  currentMode :string;
   private baseUrl = 'http://localhost:8888/relational';
   private static allClusterConcepts =
     {
@@ -49,14 +52,16 @@ export class DataRelService implements D3DataService {
       ,"content_publikation": "\uf0f6"
     }
 
-  constructor(private http: Http) {
+  constructor(private http: Http, private benchmark : BenchmarkService) {
     this.currentFocusPath = [];
+    this.currentMode = "sql";
   }
 
   getRoot(): Promise<D3NodeInterface> {
     // Make Cluster
     let children: D3NodeInterface[] = [];
     let promises = [];
+    let timer = this.benchmark.timer(BenchmarkTask.GetRoot, this.currentMode);
     for (let tableName in DataRelService.allClusterConcepts) {
       promises.push(
         this.getCountOfChildrenFromTable(tableName, DataRelService.allClusterConcepts[tableName]).then((node) => {
@@ -65,18 +70,32 @@ export class DataRelService implements D3DataService {
       )
     }
     return Promise.all(promises).then(() => {
-      let cluster = new RelD3ConceptWrapper("Cluster", children,promises.length, "none", this)
+      timer.stop();
+      let cluster = new RelD3ConceptWrapper("Cluster", children,promises.length, "none", this);
+
       return cluster;
     })
 
   }
 
-  public getChildrenForNode(node: RelD3Node): Promise<D3NodeInterface[]> {
+  public getChildrenForNode(node: RelD3Node, facettedSearch : FSFacettedSearch): Promise<D3NodeInterface[]> {
     let url = this.baseUrl + "/children/" + node.tableName + "/" + node.externalId;
     console.log("QUERYING: " + url)
+    // Prepare filter
+    let payload = {filters: null};
+    let type = BenchmarkTask.GetChildren
+    if (facettedSearch) {
+      type = BenchmarkTask.GetChildWithFacettedSearch;
+      payload.filters = facettedSearch.getData(); // Stringify payload
+    }
+    let bodyString = JSON.stringify(payload);
+    //let timer = this.benchmark.timer(BenchmarkTask.GetChildren);
+    let timer = this.benchmark.timer(type, this.currentMode);
+
     return this.http
-      .get(url)
+      .post(url, bodyString)
       .map((res: Response) => {
+        timer.stop();
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj) {
@@ -94,6 +113,7 @@ export class DataRelService implements D3DataService {
           children.push(new EmptyD3Node())
         }
         node.children = children;
+
         return children;
       })
       .catch((error: any) => Observable.throw(error || 'Server error'))
@@ -110,9 +130,12 @@ export class DataRelService implements D3DataService {
     let url = this.baseUrl + "/all/" + node.tableName;
     console.log("QUERYING: " + url)
     // ...using get request
+
+    let timer = this.benchmark.timer(BenchmarkTask.GetClass, this.currentMode);
     return this.http
       .get(url)
       .map((res: Response) => {
+        timer.stop()
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj) {
@@ -142,11 +165,14 @@ export class DataRelService implements D3DataService {
 
   getInformationForNode(node : RelD3Node) {
     let url = this.baseUrl + "/information/" + node.tableName + "/" + node.externalId;
-    console.log("QUERYING: " + url)
+    console.log("QUERYING: " + url);
+
     // ...using get request
+    let timer = this.benchmark.timer(BenchmarkTask.GetInformation, this.currentMode);
     return this.http
       .get(url)
       .map((res: Response) => {
+       timer.stop();
         let obj = res.json();
         let infos = []
         for (let info in obj) {

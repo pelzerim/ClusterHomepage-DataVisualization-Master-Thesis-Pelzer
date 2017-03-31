@@ -39,6 +39,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.ciclesContainer.focusNode(node, i);
   }
 
+  didSelectFilter(filter, value) {
+    this.ciclesContainer.didSelectFilter(filter, value);
+  }
+
 
   ngOnInit() {
 

@@ -4,6 +4,7 @@ import {D3Node, EmptyD3Node} from "../../../model/node";
 import {D3NodeInterface} from "../../../model/d3NodeInterface";
 import {Color} from "../../../model/colors";
 import {D3DataService} from "../../../services/dataServiceInterface";
+import {FCTypeFilter, FCFilter} from "../../../model/facettedSearch";
 
 @Component({
   selector: 'vis-circles',
@@ -25,6 +26,7 @@ export class CirclesComponent implements OnInit {
   //private selectedData: D3NodeInterface;
   private translate: any;
   private zoomToNode: any;
+  private reloadCirclesForFilter: any;
   //public focusedNodesLadder = [];
 
   constructor(private zone: NgZone) {
@@ -40,7 +42,22 @@ export class CirclesComponent implements OnInit {
 
   public focusNode(node: any, index: number) {
     console.log("Focus node from outside", node);
-    this.zoomToNode(node, d3.select("#circle-"+node.data.id()).node())
+    this.zoomToNode(node, d3.select("#circle-" + node.data.id()).node())
+
+  }
+
+  public didSelectFilter(filter: any, value: any) {
+    if (filter.dbName == "typeFilter") {
+      let f: FCTypeFilter = (filter as FCTypeFilter);
+      f.didSelectIndex(value).then((children) => {
+
+        f.facettedSearch.parentNode.children = children;
+        this.reloadCirclesForFilter(filter);
+      }).catch((err) => {
+        console.log("error fitering " , err);
+        filter.loading = false;
+      });
+    }
 
   }
 
@@ -64,7 +81,7 @@ export class CirclesComponent implements OnInit {
     // width of circle
     let ipnmin = 5, ipnmax = 25;
     let ipn = d3.interpolateNumber(ipnmin, ipnmax);
-    let widthOfCircle = (percent : number) => {
+    let widthOfCircle = (percent: number) => {
       return percent > 1 ? ipn(1) : percent < 0 ? ipn(0) : ipn(percent);
     };
 
@@ -76,7 +93,9 @@ export class CirclesComponent implements OnInit {
     let pack = d3.pack()
       .size([diameter, diameter]);
     //.padding(2); // Erstellt packlayout, aber noch nix drin
-    pack.padding(function(d:any) {return 6;})
+    pack.padding(function (d: any) {
+      return 6;
+    })
 
     let root; // Root node
 
@@ -85,9 +104,9 @@ export class CirclesComponent implements OnInit {
         .sum(function (d: any) {
           return d.size;
         })
-        // .sort(function (a, b) {
-        //   return b.value - a.value;
-        // });
+      // .sort(function (a, b) {
+      //   return b.value - a.value;
+      // });
 
       let focus = root,
         nodes: any = pack(root).descendants(), // pack(root) Legt die kreise aus, verteilt x,y koordinaten und radius; descendants: array of descendant nodes
@@ -135,7 +154,7 @@ export class CirclesComponent implements OnInit {
               let mx = mouseoveredCircle.x * transform.k;
               let tx = d.x * transform.k
 
-              var a =  mx - tx
+              var a = mx - tx
               if (Math.abs(a) > w) return false;
 
 
@@ -144,18 +163,18 @@ export class CirclesComponent implements OnInit {
               var b = my - ty
               if (Math.abs(b) > w) return false;
 
-              var c = Math.sqrt( a*a + b*b );
+              var c = Math.sqrt(a * a + b * b);
               //console.log(c);
               // if(d.data.name == "Nachwuchsfoerderungen") {
               //   console.log("translate(" + ((transform.x + d.x * transform.k) - radius) + "," + ((transform.y + d.y * transform.k ) - radius) + ")")
               // }
-              return  c < w;
+              return c < w;
             }
             return true;
             // return intersects(d, rect)
             // return (d.depth >= currentDepth - 2 && d.depth <= currentDepth + 1);
           })
-          .each(function(c) {
+          .each(function (c) {
             let sel = d3.select(this);
             // do translate & radius
             sel.attr("transform", function (d: any) { // Translate everything
@@ -221,7 +240,7 @@ export class CirclesComponent implements OnInit {
           mouseoveredCircleSelection.style("stroke-opacity", function (e: any) {
             //console.log(e.data.name)
             if (e == mouseoveredCircle) {
-              return Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100),0.5);
+              return Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100), 0.5);
               //console.log(widthOfCircle( (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100)))
               //return widthOfCircle((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) ) + "px";
             } else {
@@ -433,7 +452,6 @@ export class CirclesComponent implements OnInit {
 
                   this.data.currentSelectedData = d.data;
                   this.data.currentSelectedData.loadInformation().then((infos) => {
-
                   }).catch(error => console.log(error));
                   transitionText();
                 });
@@ -496,7 +514,7 @@ export class CirclesComponent implements OnInit {
         let t0 = transform0.k;
         this.translate(transform);
         //console.log(t0, transform.k,t0 >transform.k );
-        if (t0 >transform.k) {
+        if (t0 > transform.k) {
           // Zooming out, do
           zoomStartEnd();
         }
@@ -523,12 +541,12 @@ export class CirclesComponent implements OnInit {
 
           mouseoveredCircleSelection.attr("stroke-dasharray", function (e: any) {
             //console.log(e.data.name)
-            let ct = 100 - (((100 /diameterMinus) * (e.r * transform.k * 2)) );
+            let ct = 100 - (((100 / diameterMinus) * (e.r * transform.k * 2)) );
             if (ct > 0) {
               if (e == d) {
                 //console.log(widthOfCircle( (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100)))
                 //return widthOfCircle((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) ) + "px";
-                return  ct + "px";
+                return ct + "px";
               } else {
                 return "none";
               }
@@ -537,18 +555,18 @@ export class CirclesComponent implements OnInit {
           });
 
           mouseoveredCircleSelection.style("stroke-opacity", function (e: any) {
-              //console.log(e.data.name)
-              if (e == d) {
-                return Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100),0.5);
-                //console.log(widthOfCircle( (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100)))
-                //return widthOfCircle((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) ) + "px";
-              } else {
-                return 1;
-              }
-            });
+            //console.log(e.data.name)
+            if (e == d) {
+              return Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100), 0.5);
+              //console.log(widthOfCircle( (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100)))
+              //return widthOfCircle((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) ) + "px";
+            } else {
+              return 1;
+            }
+          });
 
 
-            // END The reinzoomen hitnergundfarbe
+          // END The reinzoomen hitnergundfarbe
 
 
           // // START Mouseover text anzeigen
@@ -695,6 +713,25 @@ export class CirclesComponent implements OnInit {
         //   })
       };
       // END Transition of text
+      this.reloadCirclesForFilter = (filter: FCFilter) => {
+        // START add nodes
+        console.log(nodes.length);
+
+        nodes = nodes.filter(function (el) {
+          return focus.children.indexOf(el) < 0;
+        });
+        console.log(nodes.length);
+
+        let newVirtualNodes = virtualNodesByParentNode(focus, filter.facettedSearch.parentNode.children);
+        focus.children = newVirtualNodes;
+        focus.children = newVirtualNodes;
+        nodes.push.apply(nodes, newVirtualNodes);
+        //text.remove();
+        makeCirclesAndText(nodes);
+        // zoom to current focus again (do the transformation of the updated elements)
+        //zoomTo(view);
+        zoomed();
+      };
 
       //START Make circles enter
       let makeCirclesAndText = (nodes: any) => {
@@ -740,7 +777,7 @@ export class CirclesComponent implements OnInit {
             div.html(d.data.tooltip())
               .style("left", (d3.event.pageX + 10) + "px")
               .style("top", (d3.event.pageY) + "px");
-              mouseover(d);
+            mouseover(d);
           })
           .on("mousemove", function (d: any) {
             //mouseover(d)
@@ -766,11 +803,11 @@ export class CirclesComponent implements OnInit {
           })
           .transition().duration(transitionTime)
           .style("stroke-opacity", "1")
-          // stroke-dasharray: ;
-          // .attr("stroke-dasharray", function (d: any) {
-          //   return "5,5";//d.data.color();
-          // })
-          //.style("stroke");
+        // stroke-dasharray: ;
+        // .attr("stroke-dasharray", function (d: any) {
+        //   return "5,5";//d.data.color();
+        // })
+        //.style("stroke");
 
         //.transition()
 
@@ -888,18 +925,24 @@ export class CirclesComponent implements OnInit {
       // END tooltip
 
       //zoomTo([root.x, root.y, root.r * 2]);
-
+      let virtualNodesByParentNode;
       let loadDataForNode = (d): Promise<any> => {
         if (!d.data.didLoadChildren) {
 
-           //console.log("No children, loading.");
+          //console.log("No children, loading.");
           let dataObject = d.data as D3Node;
           return dataObject.loadChildren().then((children) => {
             d.children = children;
+            d.data.children = children;
+
+            if ((d.data as D3NodeInterface).facettedSearch) {
+              (d.data as D3NodeInterface).facettedSearch.doFilters();
+            }
+
             // START virtual nodes
             // http://stackoverflow.com/questions/29387379/inserting-nodes-into-d3-pack-layout-pagination-on-zoom
             // http://fiddle.jshell.net/wfvwgqb9/2/
-            let virtualNodesByParentNode = (d3NodeParentElement, nodeChildrenElementArray) => {
+            virtualNodesByParentNode = (d3NodeParentElement, nodeChildrenElementArray) => {
               //root.children[0].children[0].children = subnode_subnodes; already happened
               // we need to do this because otherwise, the parent node object will be changed
               let d3NodeParentElementClone = Object.assign(Object.create(d3NodeParentElement), d3NodeParentElement);
@@ -907,7 +950,7 @@ export class CirclesComponent implements OnInit {
               let pack = d3.pack()
                 .size([d3NodeParentElementClone.r * 2 - (d3NodeParentElementClone.r * 2 * .1), d3NodeParentElementClone.r * 2 - (d3NodeParentElementClone.r * 2 * .1)])
               //.padding(1); // -1 is important to avoid edge overlap
-              pack.padding(function(d:any) {
+              pack.padding(function (d: any) {
                 return d.r / transform.k * .002;
               })
 
@@ -917,11 +960,11 @@ export class CirclesComponent implements OnInit {
                 .sum(function (d: any) {
                   return d.size;
                 });
-                // .sort(function (a, b) {
-                //   if(a.data.type() < b.data.type()) return -1;
-                //   if(a.data.type() > b.data.type()) return 1;
-                //   return 0;
-                // });
+              // .sort(function (a, b) {
+              //   if(a.data.type() < b.data.type()) return -1;
+              //   if(a.data.type() > b.data.type()) return 1;
+              //   return 0;
+              // });
 
               let nodes = pack(d3NodeParentElementClone).descendants();
               // absolute x,y coordinates calculation
@@ -955,6 +998,7 @@ export class CirclesComponent implements OnInit {
             });
           }).catch((error) => {
             console.log(error)
+            console.log(error.text())
           });
         } else {
           //console.log("Already loaded, only zooming");

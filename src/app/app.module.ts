@@ -15,6 +15,7 @@ import { TooltipModule } from 'ng2-bootstrap/tooltip';
 import { CollapseModule } from 'ng2-bootstrap/collapse';
 import {DataSemService} from "./services/semantic/data-sem";
 import { TabsModule } from 'ng2-bootstrap/tabs';
+import {BenchmarkService} from "./services/benchmark";
 @NgModule({
   declarations: [
     AppComponent,
@@ -32,7 +33,7 @@ import { TabsModule } from 'ng2-bootstrap/tabs';
     CollapseModule.forRoot(),
     TabsModule.forRoot()
   ],
-  providers: [appRoutingProviders, DataRelService, DataSemService],
+  providers: [appRoutingProviders, DataRelService, DataSemService, BenchmarkService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

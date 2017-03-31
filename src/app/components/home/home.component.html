@@ -41,21 +41,44 @@
           <tab customClass="single-tab">
             <template tabHeading>Informationen</template>
             <h3>{{data.currentSelectedData.name}}</h3>
+            <span>{{data.currentSelectedData.facettedSearch}}</span>
             <div *ngIf="data.currentSelectedData.information">
               <div *ngFor="let informationChunk of data.currentSelectedData.information">
                 <span class="info-title">{{informationChunk.name()}}</span>
 
-
-
-                <span [collapse]="informationChunk.isCollapsed" class="info-content" [innerHTML]="informationChunk.contentShort()" (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
-                <span [collapse]="!informationChunk.isCollapsed" class="info-content" [innerHTML]="informationChunk.content()" (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
-
+                <span [collapse]="informationChunk.isCollapsed" class="info-content"
+                      [innerHTML]="informationChunk.contentShort()"
+                      (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
+                <span [collapse]="!informationChunk.isCollapsed" class="info-content"
+                      [innerHTML]="informationChunk.content()"
+                      (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
               </div>
             </div>
-          </tab >
-          <tab customClass="single-tab" [active]="true">
-            <template tabHeading>Filter</template>
-            Tab 2 content
+          </tab>
+          <tab customClass="single-tab" [active]="true"
+               [disabled]="!data.currentSelectedData.facettedSearch || !data.currentSelectedData.facettedSearch.filters">
+
+              <template tabHeading>Filter</template>
+            <div *ngIf="data.currentSelectedData.facettedSearch">
+              <br>
+              <accordion>
+                <accordion-group [isOpen]="true" *ngFor="let filter of data.currentSelectedData.facettedSearch.filters">
+                  <div accordion-heading>
+                    {{filter.title}}
+                  </div>
+                  <div class="panel-body nopadding" *ngIf="filter.dbName == 'typeFilter'">
+                    <div class="checkbox" *ngFor="let singleTypeFilter of filter.options, let i = index">
+                      <label>
+                        <input type="checkbox" [attr.checked]="singleTypeFilter.value ? true : null"
+                               [attr.disabled]="filter.loading ? true : null" (click)="didSelectFilter(filter,i)">
+                        {{singleTypeFilter.name}}
+                        <span class="badge">{{singleTypeFilter.getBadgeValue()}}</span>
+                      </label>
+                    </div>
+                  </div>
+                </accordion-group>
+              </accordion>
+            </div>
           </tab>
         </tabset>
 
@@ -68,8 +91,8 @@
     <div class="col-md-12 nopadding">
       <ol class="breadcrumb ">
         <li *ngIf="data.currentFocusPath.length > maxLenghtOfBreadcrumbs">...</li>
-        <li  [ngClass]="{bold: i == data.currentFocusPath.length -1}"
-             *ngFor="let item of last10Focuses(); let i = index">
+        <li [ngClass]="{bold: i == data.currentFocusPath.length -1}"
+            *ngFor="let item of last10Focuses(); let i = index">
           <!--<a (click)="focusNode(item,i)"></a>-->
           <span [ngStyle]="{'border-bottom-color': item.data.color()}" class="breadcrub-single">  {{item.data.name}}
           <span class="badge" *ngIf="item.children">{{item.children.length}}

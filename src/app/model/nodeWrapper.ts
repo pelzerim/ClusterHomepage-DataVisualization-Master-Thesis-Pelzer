@@ -4,10 +4,19 @@ import {Guid} from "./GUID";
 import {DataRelService} from "../services/relational/data-rel.service";
 import {InformationChunk} from "./InformationChunk";
 import {DataSemService} from "../services/semantic/data-sem";
+import {FacettedSearch, FCFilter} from "./facettedSearch";
 /**
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
+  facettedSearch: FacettedSearch;
+
+  loadChildrenWithFilter(filter: FCFilter[]): Promise<any[]> {
+    return undefined;
+  }
+  typeOriginal(): string {
+    return this.type();
+  }
   tooltip(): string {
     return "";
   }
@@ -101,6 +110,9 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
 
   type() {
     return this.tableName;
+  }
+  typeOriginal(): string {
+    return this.type();
   }
 
 }
