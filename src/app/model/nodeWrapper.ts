@@ -3,10 +3,14 @@ import {Color} from "./colors";
 import {Guid} from "./GUID";
 import {DataRelService} from "../services/relational/data-rel.service";
 import {InformationChunk} from "./InformationChunk";
+import {DataSemService} from "../services/semantic/data-sem";
 /**
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
+  tooltip(): string {
+    return "";
+  }
   nameShort(): string {
     return this._nameShort;
   }
@@ -47,6 +51,10 @@ export class D3ConceptWrapper implements D3NodeInterface {
 
   id(): string {
     return this._id;
+  }
+
+  type() {
+    return "None";
   }
 
 }
@@ -91,4 +99,51 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
     });
   }
 
+  type() {
+    return this.tableName;
+  }
+
 }
+//
+// export class SemD3ConceptWrapper extends D3ConceptWrapper {
+//   constructor(public name: string,
+//               public children: any[],
+//               public size:number,
+//               public data : DataSemService) {
+//     super(name, children, size);
+//     this.size = 200 + size;
+//   }
+//
+//   color(): string {
+//     return "red"; // TODO: give color
+//   }
+//
+//   loadInformation(): Promise<any[]> {
+//     return new Promise<any>((resolve, reject) => {
+//       if (this.information) {
+//         resolve(this.information);
+//       } else {
+//         this.information = [new InformationChunk("name", this.name)];
+//         resolve(this.information);
+//       }
+//     });
+//   }
+//
+//   loadChildren(): Promise<any[]> {
+//     return new Promise<any>((resolve, reject) => {
+//       if (this.children) {
+//         this.didLoadChildren = true;
+//         resolve(this.children);
+//       } else {
+//         this.data.getChildrenForNode(this).then((c) => {
+//           this.didLoadChildren = true;
+//           resolve(c);
+//         })
+//       }
+//     });
+//   }
+//
+//   type() {
+//     return "error"; // TODO:
+//   }
+// }

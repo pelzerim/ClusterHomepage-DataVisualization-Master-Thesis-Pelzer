@@ -1,5 +1,15 @@
 .sidebar {
+  margin-top: 1px !important;
   overflow-y:scroll;
+  border-bottom: solid;
+  border-width: 1px;
+  border-right: solid;
+  border-right-width: 1px !important;
+}
+
+.breadcrub-single {
+  border-bottom: solid;
+  border-width:3px;
 }
 
 .bold {
@@ -7,7 +17,8 @@
 }
 
 .thin-border {
-  border: solid;
+  border-left: solid;
+  border-bottom: solid;
   border-width: 1px;
 }
 
@@ -15,3 +26,23 @@
   padding: 0 !important;
   margin: 0 !important;
 }
+
+.nomargin {
+  margin: 0 !important;
+}
+
+.info-title {
+  font-size: large;
+  font-weight: bold;
+}
+
+.info-link{
+  color: white
+}
+
+body {
+  /*Always show sidebar so tooltip doesnt activate it*/
+  overflow-y: scroll !important;
+}
+
+/*TAB STYLING IN STYLES.CSS BECAUSE BOOSTRAP*/

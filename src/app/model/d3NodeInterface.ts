@@ -13,4 +13,6 @@ export interface D3NodeInterface {
   color() : string; // should return css
   id():string;
   nameShort():string;
+  type() : string;
+  tooltip() : string;
 }

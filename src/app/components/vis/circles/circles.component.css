@@ -3,6 +3,10 @@
   /*height: 500px;*/
 /*}*/
 
+.d3-chart {
+  font-size: 0px ;
+}
+
 .node {
   cursor: pointer;
   /*stroke: #000;*/

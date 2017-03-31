@@ -1,6 +1,11 @@
 /**
  * Created by immanuelpelzer on 10.03.17.
  */
+export enum ColorMode{
+  Semantic,
+  Relational
+}
+
 export class Color {
   static colorForTable(tableName: string): string {
     switch (tableName) {
@@ -26,10 +31,78 @@ export class Color {
         return "#d99445";
       case "content_event":
         return "#d99445";
+      case "wagtailembeds_embed": // VIdeo
+        return "red";
+      case "content_category": // category
+        return "red";
+      case "wagtaildocs_document":
+        return "red";
+      case "taggit_tag": // Tags
+        return "red";
+      case "image":
+        return "red";
+      case "audio":
+        return "red";
       case "empty":
         return "gray";
+
       default:
         return "#f4f4f4";
+    }
+  }
+
+  public static colorForURI(descriotion: string) {
+    let baseUrl = "http://example.com/placeholder/"
+    let baseUrl2 = "http://example.com/placeholder2/"
+    switch (descriotion) {
+      case baseUrl + "Event":
+        return Color.colorForTable("content_ausstellung");
+      case "http://www.w3.org/ns/org#OrganizationalCollaboration":
+        return Color.colorForTable("content_kooperation");
+      case "http://xmlns.com/foaf/0.1/Person":
+        return Color.colorForTable("content_mitglied");
+      case "http://purl.org/spar/fabio/NewsItem":
+        return Color.colorForTable("content_newsletter");
+      case "http://purl.org/spar/fabio/AudioDocument":
+        return Color.colorForTable("content_podcast");
+      case "http://purl.org/spar/fabio/Announcement":
+        return Color.colorForTable("content_post");
+      case "http://purl.org/spar/fabio/BlogPost":
+        return Color.colorForTable("content_post");
+      case "http://purl.org/spar/fabio/PressRelease":
+        return Color.colorForTable("content_pressemitteilung");
+      case "http://xmlns.com/foaf/0.1/Projekt":
+        return Color.colorForTable("content_projekt");
+      case "http://purl.org/dc/elements/1.1/BibliographicResource":
+        return Color.colorForTable("content_publikation");
+      case "http://purl.org/NET/c4dm/event.owl#Event":
+        return Color.colorForTable("content_event");
+      case "empty":
+        return Color.colorForTable("empty");
+      case "http://schema.org/VideoObject":
+        return Color.colorForTable("wagtailembeds_embed");
+      case "http://www.w3.org/2004/02/skos/core#Concept":
+        return Color.colorForTable("content_category");
+      case "http://www.w3.org/2004/02/skos/core#altLabel":
+        return Color.colorForTable("taggit_tag");
+      case "http://xmlns.com/foaf/0.1/Document":
+        return Color.colorForTable("wagtaildocs_document");
+      case baseUrl + "ImageObject":
+        return Color.colorForTable("image");
+      case "http://xmlns.com/foaf/0.1/img":
+        return Color.colorForTable("image");
+      case "http://schema.org/Organization":
+        return Color.colorForTable("content_kooperation");
+      default:
+        return Color.colorForTable(descriotion);
+    }
+  }
+
+  static colorForType(descriotion: string, mode: ColorMode) {
+    if (mode == ColorMode.Relational) {
+      return Color.colorForTable(descriotion);
+    } else if (mode == ColorMode.Semantic) {
+      return Color.colorForURI(descriotion);
     }
   }
 
@@ -80,6 +153,7 @@ export class Color {
     this.hex = this.rgb.toHex();
     return this;
   }
+
 
 }
 

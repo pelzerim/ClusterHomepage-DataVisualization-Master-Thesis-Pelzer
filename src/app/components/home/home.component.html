@@ -20,22 +20,15 @@
 <!-- /.container-fluid -->
 <!--</nav>-->
 
-<ol class="breadcrumb">
-  <li *ngIf="data.currentFocusPath.length > maxLenghtOfBreadcrumbs">...</li>
-  <li [ngClass]="{bold: i == data.currentFocusPath.length -1}" *ngFor="let item of last10Focuses(); let i = index">
-    {{item.data.name}}
-    <span class="badge" *ngIf="item.children">{{item.children.length}}
-    </span>
-  </li>
-  <!-- <a (click)="focusNode(item,i)"></a>-->
-</ol>
 
 <div class="container">
+
   <div class="row">
-    <div class="col-md-8 nopadding thin-border" >
-      <vis-circles #circles  *ngIf="data" [data]="data"></vis-circles>
+    <div class="col-md-8 nopadding thin-border">
+      <vis-circles #circles *ngIf="data" [data]="data"></vis-circles>
     </div>
-    <div class="sidebar col-md-4 " [style.height]="heightOfSidebar" [style.background-color]="data.currentSelectedData ? data.currentSelectedData.color() : 'white'">
+    <div class="sidebar col-md-4 " [style.height]="heightOfSidebar"
+         [style.background-color]="data.currentSelectedData ? data.currentSelectedData.color() : 'white'">
       <div *ngIf="!data.currentSelectedData">
         <h3>How to use:</h3>
         <p>Use your <strong>mouse wheel</strong> or two finger gesture to <strong>zoom</strong> into the data.</p>
@@ -43,21 +36,48 @@
         <p><strong>Click and drag</strong> to navigate.</p>
       </div>
       <div *ngIf="data.currentSelectedData">
-        <h3>{{data.currentSelectedData.name}}</h3>
-        <div *ngIf="data.currentSelectedData.information">
-          <accordion>
-            <accordion-group  isOpen="true" #group *ngFor="let informationChunk of data.currentSelectedData.information">
-              <div accordion-heading>
-                {{informationChunk.name()}}
-                <i class="pull-right float-xs-right glyphicon"
-                   [ngClass]="{'glyphicon-chevron-down': group?.isOpen, 'glyphicon-chevron-right': !group?.isOpen}"></i>
+
+        <tabset [justified]="true">
+          <tab customClass="single-tab">
+            <template tabHeading>Informationen</template>
+            <h3>{{data.currentSelectedData.name}}</h3>
+            <div *ngIf="data.currentSelectedData.information">
+              <div *ngFor="let informationChunk of data.currentSelectedData.information">
+                <span class="info-title">{{informationChunk.name()}}</span>
+
+
+
+                <span [collapse]="informationChunk.isCollapsed" class="info-content" [innerHTML]="informationChunk.contentShort()" (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
+                <span [collapse]="!informationChunk.isCollapsed" class="info-content" [innerHTML]="informationChunk.content()" (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
+
               </div>
-              <div [innerHTML]="informationChunk.content()"></div>
-            </accordion-group>
-          </accordion>
-        </div>
+            </div>
+          </tab >
+          <tab customClass="single-tab" [active]="true">
+            <template tabHeading>Filter</template>
+            Tab 2 content
+          </tab>
+        </tabset>
+
+
       </div>
 
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 nopadding">
+      <ol class="breadcrumb ">
+        <li *ngIf="data.currentFocusPath.length > maxLenghtOfBreadcrumbs">...</li>
+        <li  [ngClass]="{bold: i == data.currentFocusPath.length -1}"
+             *ngFor="let item of last10Focuses(); let i = index">
+          <!--<a (click)="focusNode(item,i)"></a>-->
+          <span [ngStyle]="{'border-bottom-color': item.data.color()}" class="breadcrub-single">  {{item.data.name}}
+          <span class="badge" *ngIf="item.children">{{item.children.length}}
+    </span>
+          </span>
+        </li>
+
+      </ol>
     </div>
   </div>
 

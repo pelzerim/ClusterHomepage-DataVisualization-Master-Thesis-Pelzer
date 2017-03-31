@@ -12,7 +12,9 @@ import {DataRelService} from "./services/relational/data-rel.service";
 
 import { AccordionModule } from 'ng2-bootstrap/accordion';
 import { TooltipModule } from 'ng2-bootstrap/tooltip';
-
+import { CollapseModule } from 'ng2-bootstrap/collapse';
+import {DataSemService} from "./services/semantic/data-sem";
+import { TabsModule } from 'ng2-bootstrap/tabs';
 @NgModule({
   declarations: [
     AppComponent,
@@ -26,9 +28,11 @@ import { TooltipModule } from 'ng2-bootstrap/tooltip';
     HttpModule,
     routing,
     AccordionModule.forRoot(),
-    TooltipModule.forRoot()
+    TooltipModule.forRoot(),
+    CollapseModule.forRoot(),
+    TabsModule.forRoot()
   ],
-  providers: [appRoutingProviders, DataRelService],
+  providers: [appRoutingProviders, DataRelService, DataSemService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

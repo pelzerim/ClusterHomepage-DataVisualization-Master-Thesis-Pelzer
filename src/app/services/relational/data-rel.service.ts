@@ -8,14 +8,18 @@ import {D3ConceptWrapper, RelD3ConceptWrapper} from "../../model/nodeWrapper";
 import {D3NodeInterface} from "../../model/d3NodeInterface";
 import {D3DataService} from "../dataServiceInterface";
 import {InformationChunk} from "../../model/InformationChunk";
+import {ColorMode} from "../../model/colors";
 
 
 @Injectable()
 export class DataRelService implements D3DataService {
+  public colorMode() {
+    return ColorMode.Relational;
+  }
   currentSelectedData: D3NodeInterface;
   currentFocusPath: D3NodeInterface[];
 
-  private baseUrl = 'http://localhost:8888';
+  private baseUrl = 'http://localhost:8888/relational';
   private static allClusterConcepts =
     {
       "content_ausstellung": "Ausstellungen",
