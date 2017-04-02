@@ -33,7 +33,9 @@ export class DataRelService implements D3DataService {
       "content_podcast": "Podcasts",
       "content_post": "Posts",
       "content_pressemitteilung": "Pressemitteilungen",
-      "content_projekt": "Projekte"
+      "content_projekt": "Projekte",
+      "content_category" : "Kategorien",
+      "forschungsschwerpunkte": "Forschungsschwerpunkte"
       // ,"content_publikation": "Publikationen"
     }
 
@@ -126,14 +128,22 @@ export class DataRelService implements D3DataService {
    * @param name Resulting D3ConceptWrapper name
    * @returns Promise<D3Node[]>
    */
-  public getAllFromTable(node : RelD3ConceptWrapper): Promise<D3NodeInterface> {
+  public getAllFromTable(node : RelD3ConceptWrapper, facettedSearch : FSFacettedSearch): Promise<D3NodeInterface> {
     let url = this.baseUrl + "/all/" + node.tableName;
     console.log("QUERYING: " + url)
     // ...using get request
+    let payload = {filters: null};
+    let type = BenchmarkTask.GetChildren
+    if (facettedSearch) {
+      type = BenchmarkTask.GetChildWithFacettedSearch;
+      payload.filters = facettedSearch.getData(); // Stringify payload
+    }
+    let bodyString = JSON.stringify(payload);
+
 
     let timer = this.benchmark.timer(BenchmarkTask.GetClass, this.currentMode);
     return this.http
-      .get(url)
+      .post(url, bodyString)
       .map((res: Response) => {
         timer.stop()
         let obj = res.json();

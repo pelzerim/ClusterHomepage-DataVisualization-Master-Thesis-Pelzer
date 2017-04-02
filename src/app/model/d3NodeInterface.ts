@@ -10,6 +10,8 @@ export interface D3NodeInterface {
   isInFocus : boolean;
   facettedSearch  : FacettedSearch;
 
+  type() : string;
+  typeInDB() : string;
 
   loadChildren(): Promise<any[]>;
   loadChildrenWithFilter(filter : FCFilter[]): Promise<any[]>;
@@ -17,9 +19,6 @@ export interface D3NodeInterface {
   color() : string; // should return css
   id():string;
   nameShort():string;
-
-  type() : string;
-  typeOriginal() : string;
 
   tooltip() : string;
 }

@@ -66,7 +66,7 @@ export class BenchmarkService {
       this.runs[mode][task].push(time);
     }
 
-
+    clearTimeout(this.timeout);
     this.timeout = setTimeout(() => {
       this.save().catch((err) => {
         console.log("rror", err);

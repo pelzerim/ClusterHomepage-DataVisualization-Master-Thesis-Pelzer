@@ -4,7 +4,7 @@ import {D3Node, EmptyD3Node} from "../../../model/node";
 import {D3NodeInterface} from "../../../model/d3NodeInterface";
 import {Color} from "../../../model/colors";
 import {D3DataService} from "../../../services/dataServiceInterface";
-import {FCTypeFilter, FCFilter} from "../../../model/facettedSearch";
+import {FCTypeFilter, FCFilter, FCStringFilter} from "../../../model/facettedSearch";
 
 @Component({
   selector: 'vis-circles',
@@ -50,15 +50,26 @@ export class CirclesComponent implements OnInit {
     if (filter.dbName == "typeFilter") {
       let f: FCTypeFilter = (filter as FCTypeFilter);
       f.didSelectIndex(value).then((children) => {
-
         f.facettedSearch.parentNode.children = children;
         this.reloadCirclesForFilter(filter);
+        f.message =  "";
       }).catch((err) => {
-        console.log("error fitering " , err);
+        console.log("error fitering ", err);
+        f.message =  "No results.";
+        filter.loading = false;
+      });
+    } else if (filter.dbName == "stringFilter") {
+      let f: FCStringFilter = (filter as FCStringFilter);
+      f.execute().then((children) => {
+        f.facettedSearch.parentNode.children = children;
+        this.reloadCirclesForFilter(filter);
+        f.message =  "";
+      }).catch((err) => {
+        console.log("error fitering ", err);
+        f.message =  "No results.";
         filter.loading = false;
       });
     }
-
   }
 
   createCircles() {
@@ -715,12 +726,9 @@ export class CirclesComponent implements OnInit {
       // END Transition of text
       this.reloadCirclesForFilter = (filter: FCFilter) => {
         // START add nodes
-        console.log(nodes.length);
-
         nodes = nodes.filter(function (el) {
           return focus.children.indexOf(el) < 0;
         });
-        console.log(nodes.length);
 
         let newVirtualNodes = virtualNodesByParentNode(focus, filter.facettedSearch.parentNode.children);
         focus.children = newVirtualNodes;
@@ -998,7 +1006,6 @@ export class CirclesComponent implements OnInit {
             });
           }).catch((error) => {
             console.log(error)
-            console.log(error.text())
           });
         } else {
           //console.log("Already loaded, only zooming");

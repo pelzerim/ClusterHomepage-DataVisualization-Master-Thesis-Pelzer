@@ -39,9 +39,8 @@
 
         <tabset [justified]="true">
           <tab customClass="single-tab">
-            <template tabHeading>Informationen</template>
+            <template tabHeading>Information</template>
             <h3>{{data.currentSelectedData.name}}</h3>
-            <span>{{data.currentSelectedData.facettedSearch}}</span>
             <div *ngIf="data.currentSelectedData.information">
               <div *ngFor="let informationChunk of data.currentSelectedData.information">
                 <span class="info-title">{{informationChunk.name()}}</span>
@@ -58,25 +57,47 @@
           <tab customClass="single-tab" [active]="true"
                [disabled]="!data.currentSelectedData.facettedSearch || !data.currentSelectedData.facettedSearch.filters">
 
-              <template tabHeading>Filter</template>
+            <template tabHeading>Filter</template>
             <div *ngIf="data.currentSelectedData.facettedSearch">
               <br>
               <accordion>
-                <accordion-group [isOpen]="true" *ngFor="let filter of data.currentSelectedData.facettedSearch.filters">
-                  <div accordion-heading>
-                    {{filter.title}}
-                  </div>
-                  <div class="panel-body nopadding" *ngIf="filter.dbName == 'typeFilter'">
-                    <div class="checkbox" *ngFor="let singleTypeFilter of filter.options, let i = index">
-                      <label>
-                        <input type="checkbox" [attr.checked]="singleTypeFilter.value ? true : null"
-                               [attr.disabled]="filter.loading ? true : null" (click)="didSelectFilter(filter,i)">
-                        {{singleTypeFilter.name}}
-                        <span class="badge">{{singleTypeFilter.getBadgeValue()}}</span>
-                      </label>
+                <div *ngFor="let filter of data.currentSelectedData.facettedSearch.filters">
+                  <accordion-group [isOpen]="true" *ngIf="filter.isShowing()">
+                    <div accordion-heading>
+                      {{filter.title}}
                     </div>
-                  </div>
-                </accordion-group>
+                    <!-- TYPE FILTER -->
+                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'typeFilter'">
+                      <div class="checkbox" *ngFor="let singleTypeFilter of filter.options, let i = index">
+                        <label>
+                          <input type="checkbox" [attr.checked]="singleTypeFilter.value ? true : null"
+                                 [attr.disabled]="filter.loading ? true : null" (click)="didSelectFilter(filter,i)">
+                          {{singleTypeFilter.name}}
+                          <span class="badge">{{singleTypeFilter.getBadgeValue()}}</span>
+                        </label>
+                      </div>
+                      <alert type="warning" *ngIf="filter.message != ''" dismissible="true">
+                        {{filter.message}}
+                      </alert>
+                    </div>
+                    <!--NAME FILTER-->
+                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'stringFilter'">
+                      <form class="form-inline">
+                        <div class="form-group">
+                          <input type="email" class="form-control" id="stringFilterText"
+                                 placeholder="Text to filter by" [(ngModel)]="filter.value" [ngModelOptions]="{standalone: true}">
+                          <button type="submit" class="btn btn-primary" (click)="didSelectFilter(filter, null)" [attr.disabled]="filter.loading ? true : null">Go</button>
+                          <button type="submit" class="btn btn-default" (click)="filter.value = ''; didSelectFilter(filter, null)" [attr.disabled]="filter.loading ? true : null">Reset</button>
+                          <alert type="warning" *ngIf="filter.message != ''" dismissible="true">
+                            {{filter.message}}
+                          </alert>
+                          <!--      -->
+                        </div>
+                      </form>
+                    </div>
+                  </accordion-group>
+                  <br>
+                </div>
               </accordion>
             </div>
           </tab>

@@ -1,5 +1,6 @@
-import {FacettedSearch, FCFilter, FCTypeFilter, FCTypeFilterOption} from "../../model/facettedSearch";
+import {FacettedSearch, FCFilter, FCTypeFilter, FCTypeFilterOption, FCStringFilter} from "../../model/facettedSearch";
 import {D3NodeInterface} from "../../model/d3NodeInterface";
+import {SemD3Node} from "../../model/node";
 /**
  * Created by immanuelpelzer on 31.03.17.
  */
@@ -15,7 +16,10 @@ export class FSFacettedSearch implements FacettedSearch {
     let fs = [];
     // Type fiter
     if(this.parentNode.children) {
+      // type filter
       fs.push(new FSTypeFilter(this.parentNode.children, this))
+      // String filter
+      fs.push(new FSStringFilter(this));
     }
 
     this.filters = fs;
@@ -28,35 +32,78 @@ export class FSFacettedSearch implements FacettedSearch {
   getData(): any {
     let out = {};
     this.filters.forEach((item , index) => {
-      out[item.dbName] = item.getData();
+      let data = item.getData();
+      if (data) out[item.dbName] = data;
     });
     return out;
   }
 
 }
 
+const FILTERSTRING = "stringFilter";
+
+export class FSStringFilter implements FCStringFilter {
+  message: string = "";
+  isShowing(): boolean {
+    return true;
+  }
+
+  value: string = "";
+  title: string = "Filter names";
+  dbName: string = FILTERSTRING;
+  loading: boolean = false;
+
+  constructor(public facettedSearch : FacettedSearch) {
+  }
+
+  getData(): any {
+    if (this.value) {
+      return { value: this.value };
+    } else {
+      return null;
+    }
+  }
+
+  execute() {
+    this.loading = true;
+    return this.facettedSearch.reloadChildren().then((children) => {
+      this.loading = false;
+      this.message = children.length ? "" : "No results.";
+      return children;
+    });
+  }
+
+}
+
 const TYPEFILTER = "typeFilter";
 export class FSTypeFilter implements FCTypeFilter {
+  message: string = "";
+
   options: FCTypeFilterOption[] = [];
-  title: string = "Auf Typ beschränken";
+  title: string = "Restrict types";
   dbName: string = TYPEFILTER; // DO NOT CHANGE
   loading: boolean = false;
+  _isShowing : boolean = false;
+
+
+  isShowing(): boolean {
+    return this._isShowing;
+  }
 
   constructor(forChildren : D3NodeInterface[], public facettedSearch : FacettedSearch) {
     let addingMap = {};
     for (let child of forChildren) {
-        if (child.typeOriginal() in addingMap) {
-          addingMap[child.typeOriginal()].count++;
+        let semNode = child as D3NodeInterface;
+        if (semNode.typeInDB() in addingMap) {
+          addingMap[semNode.typeInDB()].count++;
         } else {
-          let c = new FSTypeFilterOption(child.type(), child.typeOriginal(), true);
+          let c = new FSTypeFilterOption(semNode.type(), semNode.typeInDB(), true);
           //console.log(c)
-          addingMap[child.typeOriginal()] = c;
+          addingMap[semNode.typeInDB()] = c;
           this.options.push(c);
         }
     }
-    if (this.options.length ==1 ) {
-      this.options = [];
-    }
+      this._isShowing = this.options.length > 1;
   }
 
   didSelectIndex(index: number) : Promise<any[]>  {

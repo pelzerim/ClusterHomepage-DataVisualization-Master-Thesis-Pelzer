@@ -15,9 +15,6 @@ import {FSTypeFilter, FSFacettedSearch} from "../services/semantic/facettedSearc
 export class D3Node implements D3NodeInterface {
   facettedSearch: FacettedSearch;
 
-  typeOriginal(): string {
-    return "none";
-  }
 
   tooltip(): string {
     return "";
@@ -77,11 +74,16 @@ export class D3Node implements D3NodeInterface {
     return "none";
   }
 
+  typeInDB() {
+    return "Leer";
+  }
+
 }
 
 
 // D3 Node for RELATIONAL DATA
 export class RelD3Node extends D3Node {
+
   didLoadChildren: boolean = false;
 
 
@@ -94,7 +96,6 @@ export class RelD3Node extends D3Node {
     super(name, size);
     this.size = 10 + size;
     this.facettedSearch = new FSFacettedSearch(this);
-
   }
 
   public loadChildren(): Promise<D3Node[]> {
@@ -132,7 +133,7 @@ export class RelD3Node extends D3Node {
     return this.tableName;
   }
 
-  typeOriginal(): string {
+  typeInDB(): string {
     return this.tableName;
   }
 
@@ -151,18 +152,31 @@ export enum SemD3NodeType {
 // D3 Node for SEMANTIC DATA
 export class SemD3Node extends D3Node {
   didLoadChildren: boolean = false;
-  typeURI: SemDataURI = new SemDataURI(null);
-  uri: SemDataURI = new SemDataURI(null);
-  predicateConnectingParentToThis: SemDataURI;
+
   size: number;
   semD3NodeType: SemD3NodeType;
   parent: D3NodeInterface;
   static sizeOfNode = d3.interpolateNumber(1, 100);
   didLoadInformation = false;
 
+  // URI TYPES
+  public typeURI: SemDataURI = new SemDataURI(null);
+  public uri: SemDataURI = new SemDataURI(null);
+  public predicateConnectingParentToThisURI: SemDataURI;
+
   constructor(private data: DataSemService) {
     super("Leer", 0);
     this.facettedSearch = new FSFacettedSearch(this);
+  }
+
+
+
+  type() {
+    return this.typeURI.getValueFormatted();
+  }
+
+  typeInDB() {
+    return this.typeURI.getValue();
   }
 
   //
@@ -184,7 +198,7 @@ export class SemD3Node extends D3Node {
     } else {
       this.didLoadChildren = true;
       if (this.semD3NodeType == SemD3NodeType.Class) {
-        return this.data.getPropertiesOfClass(this);
+        return this.data.getPropertiesOfClass(this, null);
       } else if (this.semD3NodeType == SemD3NodeType.Instance) {
         return this.data.getPropertiesOfInstance(this, null);
       }
@@ -195,7 +209,7 @@ export class SemD3Node extends D3Node {
   loadChildrenWithFilter(filter: FCFilter[]): Promise<any[]> {
     this.didLoadChildren = true;
     if (this.semD3NodeType == SemD3NodeType.Class) {
-      return this.data.getPropertiesOfClass(this);
+      return this.data.getPropertiesOfClass(this, this.facettedSearch);
     } else if (this.semD3NodeType == SemD3NodeType.Instance) {
       return this.data.getPropertiesOfInstance(this, this.facettedSearch);
     }
@@ -215,18 +229,8 @@ export class SemD3Node extends D3Node {
 
   color(): string {
     return Color.colorForURI(this.typeURI.getValue());
-    //return Color.colorForURI(this.predicateConnectingParentToThis.getValue());
+    //return Color.colorForURI(this.predicateConnectingParentToThisURI.getValue());
   }
-
-  type() {
-    if (!this.predicateConnectingParentToThis) return this.uri.getValueFormatted();
-    return this.predicateConnectingParentToThis.getValueFormatted();
-  }
-
-  typeOriginal(): string {
-    return this.typeURI.getValue();
-  }
-
 
   tooltip(): string {
     if (this.semD3NodeType == SemD3NodeType.Class) {
@@ -267,4 +271,6 @@ export class EmptyD3Node extends D3Node {
   type() {
     return "Leer";
   }
+
+
 }

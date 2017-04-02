@@ -32,6 +32,8 @@ export class SemanticInformationChunk extends InformationChunk{
 
 export class SemData {
   public type : string;
+  public typeLabel : string;
+
   public value : string;
   public datatype : string; // Of value
 
@@ -48,6 +50,7 @@ export class SemData {
   }
 
   public getValueFormatted() {
+    if (this.typeLabel) return this.typeLabel;
     let spl =  this.value.split("/");
     if (spl.length > 0) {
       let last = spl[spl.length -1];

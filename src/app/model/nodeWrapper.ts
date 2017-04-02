@@ -5,10 +5,14 @@ import {DataRelService} from "../services/relational/data-rel.service";
 import {InformationChunk} from "./InformationChunk";
 import {DataSemService} from "../services/semantic/data-sem";
 import {FacettedSearch, FCFilter} from "./facettedSearch";
+import {FSFacettedSearch} from "../services/semantic/facettedSearchSemType";
 /**
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
+  typeInDB(): string {
+    return "";
+  }
   facettedSearch: FacettedSearch;
 
   loadChildrenWithFilter(filter: FCFilter[]): Promise<any[]> {
@@ -76,7 +80,7 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
               public data : DataRelService) {
     super(name, children, size);
     this.size = 200 + size;
-
+    this.facettedSearch = new FSFacettedSearch(this);
   }
 
   color(): string {
@@ -100,7 +104,7 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
         this.didLoadChildren = true;
         resolve(this.children);
       } else {
-        this.data.getAllFromTable(this).then((c) => {
+        this.data.getAllFromTable(this, null).then((c) => {
           this.didLoadChildren = true;
           resolve(c);
         })
@@ -108,11 +112,18 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
     });
   }
 
+  loadChildrenWithFilter(filter: FCFilter[]): Promise<any[]> {
+    return this.data.getAllFromTable(this, this.facettedSearch).then((c) => {
+      this.didLoadChildren = true;
+      return c;
+    })
+  }
+
   type() {
     return this.tableName;
   }
-  typeOriginal(): string {
-    return this.type();
+  typeInDB(): string {
+    return this.tableName;
   }
 
 }

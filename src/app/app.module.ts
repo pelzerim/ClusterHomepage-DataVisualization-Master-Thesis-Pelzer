@@ -16,6 +16,8 @@ import { CollapseModule } from 'ng2-bootstrap/collapse';
 import {DataSemService} from "./services/semantic/data-sem";
 import { TabsModule } from 'ng2-bootstrap/tabs';
 import {BenchmarkService} from "./services/benchmark";
+import { AlertModule } from 'ng2-bootstrap/alert';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -31,7 +33,8 @@ import {BenchmarkService} from "./services/benchmark";
     AccordionModule.forRoot(),
     TooltipModule.forRoot(),
     CollapseModule.forRoot(),
-    TabsModule.forRoot()
+    TabsModule.forRoot(),
+    AlertModule.forRoot()
   ],
   providers: [appRoutingProviders, DataRelService, DataSemService, BenchmarkService],
   bootstrap: [AppComponent]

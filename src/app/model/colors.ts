@@ -33,8 +33,10 @@ export class Color {
         return "#d99445";
       case "wagtailembeds_embed": // VIdeo
         return "red";
+      case "forschungsschwerpunkte":// category
+        return "#4866b8";
       case "content_category": // category
-        return "red";
+        return "#4866b8";
       case "wagtaildocs_document":
         return "red";
       case "taggit_tag": // Tags
@@ -71,7 +73,7 @@ export class Color {
         return Color.colorForTable("content_post");
       case "http://purl.org/spar/fabio/PressRelease":
         return Color.colorForTable("content_pressemitteilung");
-      case "http://xmlns.com/foaf/0.1/Projekt":
+      case "http://xmlns.com/foaf/0.1/Project":
         return Color.colorForTable("content_projekt");
       case "http://purl.org/dc/elements/1.1/BibliographicResource":
         return Color.colorForTable("content_publikation");

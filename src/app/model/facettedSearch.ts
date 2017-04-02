@@ -16,7 +16,15 @@ export interface FCFilter {
   dbName : string;
   loading : boolean;
   facettedSearch : FacettedSearch;
+  message: string;
   getData() : any;
+  isShowing() : boolean;
+
+}
+
+export interface FCStringFilter extends FCFilter{
+  value : string;
+  execute();
 }
 
 export interface FCTypeFilter extends FCFilter{

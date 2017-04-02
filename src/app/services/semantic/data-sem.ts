@@ -61,7 +61,7 @@ export class DataSemService implements D3DataService {
           newNode.setSize(child.rank.value);
           newNode.parent = cluster;
           newNode.semD3NodeType = SemD3NodeType.Class;
-          newNode.predicateConnectingParentToThis = null;
+          newNode.predicateConnectingParentToThisURI = null;
 
           // let info = [];
           // child.title ? info.push(new SemanticInformationChunk(new SemDataURI("Title"),child.title.value)):null;
@@ -73,6 +73,28 @@ export class DataSemService implements D3DataService {
 
 
         }
+        //// ADD FORSCHUNGSCHWERPUNKTE
+        let uri = new SemDataURI("forschungsschwerpunkte");
+
+        let newNode = new SemD3Node(this);
+        newNode.uri = uri;
+        newNode.name = "Forschungsschwerpunkte";
+        newNode.nameRedo();
+        newNode.typeURI = uri;
+        newNode.setSize(0.0);
+        newNode.parent = cluster;
+        newNode.semD3NodeType = SemD3NodeType.Class;
+        newNode.predicateConnectingParentToThisURI = null;
+
+        // let info = [];
+        // child.title ? info.push(new SemanticInformationChunk(new SemDataURI("Title"),child.title.value)):null;
+        // child.comment ? info.push(new SemanticInformationChunk(new SemDataURI("Comment"),child.comment.value)):null;
+        // newNode.information = info;
+
+
+        cluster.children.push(newNode)
+
+
         return cluster;
       })
       .catch((error: any) => Observable.throw(error || 'Server error'))
@@ -118,10 +140,13 @@ export class DataSemService implements D3DataService {
           newNode.parent = node;
           newNode.semD3NodeType = SemD3NodeType.Instance;
           newNode.typeURI = new SemDataURI(child.type.value);
-          newNode.predicateConnectingParentToThis = new SemDataURI(child.p.value);
+          newNode.typeURI.typeLabel = child.typeLabel ? capitalizeFirstLetter(child.typeLabel.value) : null;
+          newNode.predicateConnectingParentToThisURI = new SemDataURI(child.p.value);
           let info = [];
           //child.title ? info.push(new SemanticInformationChunk(new SemDataURI("Title"),child.title.value)):null;
           child.comment ? info.push(new SemanticInformationChunk(new SemDataURI("Comment"),child.comment.value)):null;
+
+
           newNode.information = info;
           children.push(newNode)
 
@@ -134,7 +159,7 @@ export class DataSemService implements D3DataService {
   }
 
 
-  getPropertiesOfClass(node: SemD3Node): Promise<D3NodeInterface> {
+  getPropertiesOfClass(node: SemD3Node, facettedSearch : FacettedSearch): Promise<D3NodeInterface> {
     let encUri = node.uriEncoded();
     if (!encUri) {
       return new Promise<any>((resolve, reject) => {
@@ -145,10 +170,20 @@ export class DataSemService implements D3DataService {
 
     console.log("QUERYING: " + url + " Original URI ("+ node.uri.getValue() + ")");
     // ...using get request
+    // Prepare filter
+    let payload = {filters: null}
+    let type = BenchmarkTask.GetChildren;
+    if (facettedSearch) {
+      type = BenchmarkTask.GetChildWithFacettedSearch;
+      payload.filters = facettedSearch.getData(); // Stringify payload
+    }
+    let bodyString = JSON.stringify(payload);
+
+
     let timer = this.benchmark.timer(BenchmarkTask.GetClass, this.currentMode);
 
     return this.http
-      .get(url)
+      .post(url, payload)
       .map((res: Response) => {
         timer.stop();
         let obj = res.json();
@@ -165,7 +200,7 @@ export class DataSemService implements D3DataService {
           newNode.setSize(child.rank.value);
           newNode.parent = node;
           newNode.semD3NodeType = SemD3NodeType.Instance;
-          newNode.predicateConnectingParentToThis = node.uri;
+          newNode.predicateConnectingParentToThisURI = node.uri;
           children.push(newNode)
         }
         node.children = children;
