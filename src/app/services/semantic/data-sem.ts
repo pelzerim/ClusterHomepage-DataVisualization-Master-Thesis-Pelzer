@@ -102,7 +102,7 @@ export class DataSemService implements D3DataService {
       .toPromise()
   }
 
-  getPropertiesOfInstance(node: SemD3Node, facettedSearch : FacettedSearch): Promise<D3NodeInterface> {
+  getPropertiesOfInstance(node: SemD3Node, facettedSearch : FacettedSearch): Promise<D3NodeInterface[]> {
     let encUri = node.uriEncoded();
     if (!encUri) {
       return new Promise<any>((resolve, reject) => {
@@ -162,7 +162,7 @@ export class DataSemService implements D3DataService {
   }
 
 
-  getPropertiesOfClass(node: SemD3Node, facettedSearch : FacettedSearch): Promise<D3NodeInterface> {
+  getPropertiesOfClass(node: SemD3Node, facettedSearch : FacettedSearch): Promise<D3NodeInterface[]> {
     let encUri = node.uriEncoded();
     if (!encUri) {
       return new Promise<any>((resolve, reject) => {
@@ -214,7 +214,7 @@ export class DataSemService implements D3DataService {
       .toPromise();
   }
 
-  getLiteralsOf(node: SemD3Node): Promise<D3NodeInterface> {
+  getLiteralsOf(node: SemD3Node): Promise<any[]> {
     let encUri = node.uriEncoded();
     if (!encUri) {
       return new Promise<any>((resolve, reject) => {

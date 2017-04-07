@@ -74,7 +74,6 @@ export class DataRelService implements D3DataService {
     return Promise.all(promises).then(() => {
       timer.stop();
       let cluster = new RelD3ConceptWrapper("Cluster", children,promises.length, "none", this);
-
       return cluster;
     })
 
@@ -128,7 +127,7 @@ export class DataRelService implements D3DataService {
    * @param name Resulting D3ConceptWrapper name
    * @returns Promise<D3Node[]>
    */
-  public getAllFromTable(node : RelD3ConceptWrapper, facettedSearch : FSFacettedSearch): Promise<D3NodeInterface> {
+  public getAllFromTable(node : RelD3ConceptWrapper, facettedSearch : FSFacettedSearch): Promise<D3NodeInterface[]> {
     let url = this.baseUrl + "/all/" + node.tableName;
     console.log("QUERYING: " + url)
     // ...using get request

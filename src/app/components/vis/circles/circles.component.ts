@@ -1094,16 +1094,16 @@ export class CirclesComponent implements OnInit {
 
         transition.selectAll("text")
           .filter(function (d: any) {
-            return d.parent === focus || this.style.display === "inline";
+            return d.parent === focus || (this as any).style["display"] === "inline";
           })
           .style("fill-opacity", function (d: any) {
             return d.parent === focus ? 1 : 0;
           })
           .on("start", function (d: any) {
-            if (d.parent === focus) this.style.display = "inline";
+            if (d.parent === focus) (this as any).style["display"] = "inline";
           })
           .on("end", function (d: any) {
-            if (d.parent !== focus) this.style.display = "none";
+            if (d.parent !== focus) (this as any).style["display"] = "none";
           });
         // END The zoom
       };
