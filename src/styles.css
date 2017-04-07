@@ -1,40 +1,48 @@
 /* You can add global styles to this file, and also import other style files */
-.nav-tabs > li > a {
-  -webkit-border-radius: 0!important;
-  -moz-border-radius: 0!important;
-  border-radius: 0!important;
-}
+/*.nav-tabs > li > a {*/
+  /*-webkit-border-radius: 0!important;*/
+  /*-moz-border-radius: 0!important;*/
+  /*border-radius: 0!important;*/
+/*}*/
 
-@media (min-width: 768px) {
-  .nav-tabs >li>a {
-    -webkit-border-radius: 0 !important;
-    -moz-border-radius: 0!important;
-    border-radius: 0!important;
-    border-bottom: 0 !important;
-  }
-}
+/*@media (min-width: 768px) {*/
+  /*.nav-tabs >li>a {*/
+    /*-webkit-border-radius: 0 !important;*/
+    /*-moz-border-radius: 0!important;*/
+    /*border-radius: 0!important;*/
+    /*border-bottom: 0 !important;*/
+  /*}*/
+/*}*/
 
 .nav-item>a {
-  background-color: #fff !important;
+  background-color: transparent ;
   color:black !important;;
 }
 
 .nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
   color: black !important;
-  background-color: transparent !important;
+  background-color: #ffffff !important;
 
-  border: 1px solid #ddd;
-  border-bottom-color: transparent;
 
 }
-
-.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
-  border: 0 !important;
-}
-
-.single-tab {
+.nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {
   color: black !important;
+  background-color: #ffffff !important;
 }
+
+.nav-pills>li>a {
+  border: solid 2px white;
+}
+
+.nav-pills>li {
+  padding-right: 5px;
+}
+
+/*.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {*/
+  /*border: 0 !important;*/
+/*}*/
+
+
 
 
 .nopadding {

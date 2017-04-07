@@ -19,6 +19,7 @@ export class InformationChunk {
   }
 
 
+
 }
 
 export class SemanticInformationChunk extends InformationChunk{
@@ -35,6 +36,7 @@ export class SemData {
   public typeLabel : string;
 
   public value : string;
+  public valueLabel : string;
   public datatype : string; // Of value
 
   constructor(private input : any) {
@@ -66,6 +68,7 @@ export class SemData {
 
 
 export class SemDataURI extends SemData {
+  public comment : string;
   constructor(uri : string) {
     super({
         type: "uri",

@@ -1,6 +1,6 @@
 import {D3NodeInterface} from "./d3NodeInterface";
 import {DataRelService} from "../services/relational/data-rel.service";
-import {Color} from "./colors";
+import {Color, HEX} from "./colors";
 import {Guid} from "./GUID";
 import {DataSemService} from "../services/semantic/data-sem";
 import {SemDataURI} from "./InformationChunk";
@@ -13,6 +13,7 @@ import {FSTypeFilter, FSFacettedSearch} from "../services/semantic/facettedSearc
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3Node implements D3NodeInterface {
+
   facettedSearch: FacettedSearch;
 
 
@@ -32,6 +33,7 @@ export class D3Node implements D3NodeInterface {
 
   constructor(public name: string,
               public size: number) {
+    this.name = name.replace("&#38;", "&");
     this.nameRedo();
   }
 
@@ -78,6 +80,10 @@ export class D3Node implements D3NodeInterface {
     return "Leer";
   }
 
+  comment(): string {
+    return null;
+  }
+
 }
 
 
@@ -94,7 +100,14 @@ export class RelD3Node extends D3Node {
               private data: DataRelService,
               public parent: D3NodeInterface) {
     super(name, size);
-    this.size = 10 + size;
+    this.name = name.replace("&#38;", "&");
+    if (this.parent && this.parent.facettedSearch && this.parent.facettedSearch.namedFilters && this.parent.facettedSearch.namedFilters["sizeFilter"] && this.parent.facettedSearch.namedFilters["sizeFilter"].value == "children") {
+      this.size = size;
+    } else {
+      this.size = 1;
+    }
+
+
     this.facettedSearch = new FSFacettedSearch(this);
   }
 
@@ -125,8 +138,14 @@ export class RelD3Node extends D3Node {
     }
   }
 
-  color(): string {
-    return Color.colorForTable(this.tableName);
+  color() {
+    return this.colorWithAlpha(1);
+  }
+
+  colorWithAlpha(alpha : number): string {
+    //console.log(new HEX(Color.colorForTable(this.tableName)).toRGB().setAlpha(alpha).toString());
+    return new HEX(Color.colorForTable(this.tableName)).toRGB().setAlpha(alpha).toString();
+
   }
 
   type() {
@@ -156,7 +175,7 @@ export class SemD3Node extends D3Node {
   size: number;
   semD3NodeType: SemD3NodeType;
   parent: D3NodeInterface;
-  static sizeOfNode = d3.interpolateNumber(1, 100);
+  //static sizeOfNode = d3.interpolateNumber(1, 100);
   didLoadInformation = false;
 
   // URI TYPES
@@ -164,8 +183,10 @@ export class SemD3Node extends D3Node {
   public uri: SemDataURI = new SemDataURI(null);
   public predicateConnectingParentToThisURI: SemDataURI;
 
+
   constructor(private data: DataSemService) {
     super("Leer", 0);
+
     this.facettedSearch = new FSFacettedSearch(this);
   }
 
@@ -179,9 +200,15 @@ export class SemD3Node extends D3Node {
     return this.typeURI.getValue();
   }
 
-  //
+  // IMPORTANT: MAKE SURE TO SET PARENT BEFORE INVOKING THIS
   public setSize(size: number) {
-    this.size = SemD3Node.sizeOfNode(size);
+    if (!this.parent) throw new Error("Set parent proerty before setting size.");
+    if (this.parent && this.parent.facettedSearch && this.parent.facettedSearch.namedFilters["sizeFilter"] &&  this.parent.facettedSearch.namedFilters["sizeFilter"].value == "children") {
+      this.size = size;
+    } else {
+      this.size = 1;
+    }
+
   }
 
   public uriEncoded() {
@@ -226,19 +253,29 @@ export class SemD3Node extends D3Node {
     }
   }
 
+  color() {
+    return this.colorWithAlpha(1);
+  }
 
-  color(): string {
-    return Color.colorForURI(this.typeURI.getValue());
+  colorWithAlpha(alpha : number): string {
+    return new HEX(Color.colorForURI(this.typeURI.getValue())).toRGB().setAlpha(alpha).toString();
     //return Color.colorForURI(this.predicateConnectingParentToThisURI.getValue());
   }
 
   tooltip(): string {
     if (this.semD3NodeType == SemD3NodeType.Class) {
-      return "Information about <strong>" + this.name + "</strong>"
+      let out = "<strong>" + this.name + "</strong> ";
+      if(this.typeURI.comment) out += this.typeURI.comment;
+      return out;
     } else if (this.semD3NodeType == SemD3NodeType.Instance) {
-      return this.typeURI.getValueFormatted() + ": <strong>" + this.name + "</strong>"
+      let label = this.predicateConnectingParentToThisURI && this.predicateConnectingParentToThisURI.valueLabel ? this.predicateConnectingParentToThisURI.valueLabel + " " + this.typeURI.getValueFormatted() : this.typeURI.getValueFormatted()
+      return label + ": <strong>" + this.name + "</strong>"
     }
 
+  }
+
+  comment(): string {
+    return this.typeURI.comment;
   }
 
 }

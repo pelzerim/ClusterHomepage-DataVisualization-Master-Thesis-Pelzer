@@ -36,7 +36,7 @@ export class DataRelService implements D3DataService {
       "content_projekt": "Projekte",
       "content_category" : "Kategorien",
       "forschungsschwerpunkte": "Forschungsschwerpunkte"
-      // ,"content_publikation": "Publikationen"
+      ,"content_publikation": "Publikationen"
     }
 
 

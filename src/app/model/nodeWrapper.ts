@@ -1,5 +1,5 @@
 import {D3NodeInterface} from "./d3NodeInterface";
-import {Color} from "./colors";
+import {Color, HEX} from "./colors";
 import {Guid} from "./GUID";
 import {DataRelService} from "../services/relational/data-rel.service";
 import {InformationChunk} from "./InformationChunk";
@@ -10,6 +10,9 @@ import {FSFacettedSearch} from "../services/semantic/facettedSearchSemType";
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
+  comment(): string {
+    return null;
+  }
   typeInDB(): string {
     return "";
   }
@@ -79,13 +82,19 @@ export class RelD3ConceptWrapper extends D3ConceptWrapper {
               public tableName: string,
               public data : DataRelService) {
     super(name, children, size);
-    this.size = 200 + size;
+    //this.size = 200 + size;
+    this.size = 1;
     this.facettedSearch = new FSFacettedSearch(this);
   }
 
   color(): string {
     return Color.colorForTable(this.tableName);
   }
+  colorWithAlpha(alpha : number): string {
+    return new HEX(Color.colorForTable(this.tableName)).toRGB().setAlpha(alpha).toString();
+
+  }
+
 
   loadInformation(): Promise<any[]> {
     return new Promise<any>((resolve, reject) => {

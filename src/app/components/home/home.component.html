@@ -21,14 +21,13 @@
 <!--</nav>-->
 
 
-<div class="container">
 
   <div class="row">
     <div class="col-md-8 nopadding thin-border">
       <vis-circles #circles *ngIf="data" [data]="data"></vis-circles>
     </div>
     <div class="sidebar col-md-4 " [style.height]="heightOfSidebar"
-         [style.background-color]="data.currentSelectedData ? data.currentSelectedData.color() : 'white'">
+         [style.background-color]="data.currentSelectedData ? data.currentSelectedData.colorWithAlpha(0.4) : 'white'">
       <div *ngIf="!data.currentSelectedData">
         <h3>How to use:</h3>
         <p>Use your <strong>mouse wheel</strong> or two finger gesture to <strong>zoom</strong> into the data.</p>
@@ -36,29 +35,32 @@
         <p><strong>Click and drag</strong> to navigate.</p>
       </div>
       <div *ngIf="data.currentSelectedData">
-
-        <tabset [justified]="true">
+        <h3>{{data.currentSelectedData.name}}</h3>
+        <tabset  type="pills" [justified]="true">
           <tab customClass="single-tab">
             <template tabHeading>Information</template>
-            <h3>{{data.currentSelectedData.name}}</h3>
-            <div *ngIf="data.currentSelectedData.information">
-              <div *ngFor="let informationChunk of data.currentSelectedData.information">
-                <span class="info-title">{{informationChunk.name()}}</span>
 
-                <span [collapse]="informationChunk.isCollapsed" class="info-content"
-                      [innerHTML]="informationChunk.contentShort()"
-                      (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
+            <div *ngIf="data.currentSelectedData.information" >
+              <div *ngFor="let informationChunk of data.currentSelectedData.information" >
+                <div class="info-title-wrapper">
+                <span class="info-title" (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed">
+                  <span class="glyphicon glyphicon-search" [ngClass]="{'glyphicon-chevron-right': !informationChunk.isCollapsed, 'glyphicon-chevron-down': informationChunk.isCollapsed}" aria-hidden="true"></span>
+                  {{informationChunk.name()}}
+                </span>
+              </div>
                 <span [collapse]="!informationChunk.isCollapsed" class="info-content"
                       [innerHTML]="informationChunk.content()"
-                      (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed"></span>
+                     ></span>
               </div>
             </div>
           </tab>
           <tab customClass="single-tab" [active]="true"
                [disabled]="!data.currentSelectedData.facettedSearch || !data.currentSelectedData.facettedSearch.filters">
 
-            <template tabHeading>Filter</template>
-            <div *ngIf="data.currentSelectedData.facettedSearch">
+            <template tabHeading>Filter
+              <span class="badge" *ngIf="data.currentSelectedData.facettedSearch.activeFilters">Aktiv</span>
+            </template>
+            <div *ngIf="data.currentSelectedData.facettedSearch" class="border-lr">
               <br>
               <accordion>
                 <div *ngFor="let filter of data.currentSelectedData.facettedSearch.filters">
@@ -66,13 +68,30 @@
                     <div accordion-heading>
                       {{filter.title}}
                     </div>
+                    <!--SIZE FILTER-->
+                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'sizeFilter'" (change)="didSelectFilter(filter,$event.target.value)">
+                      <form class="form-inline">
+                        <div class="form-group">
+                          <select id="exampleInputName2" class="form-control" >
+                            <option *ngFor="let item of filter.options, let i = index"
+                                    [selected]="item.dbName == filter.value"
+                                    [value]="i"
+                            >{{item.title}}</option>
+                          </select>
+                          <!--      -->
+                        </div>
+                      </form>
+                    </div>
+
                     <!-- TYPE FILTER -->
-                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'typeFilter'">
+                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'typeFilter' || filter.dbName == 'predicateFilter'">
                       <div class="checkbox" *ngFor="let singleTypeFilter of filter.options, let i = index">
                         <label>
                           <input type="checkbox" [attr.checked]="singleTypeFilter.value ? true : null"
                                  [attr.disabled]="filter.loading ? true : null" (click)="didSelectFilter(filter,i)">
                           {{singleTypeFilter.name}}
+
+                          <span class="glyphicon glyphicon-info-sign" aria-hidden="true" *ngIf="singleTypeFilter.comment" placement="right" container="body" [tooltip]="singleTypeFilter.comment.substring(0,500)"></span>
                           <span class="badge">{{singleTypeFilter.getBadgeValue()}}</span>
                         </label>
                       </div>
@@ -81,14 +100,22 @@
                       </alert>
                     </div>
                     <!--NAME FILTER-->
-                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'stringFilter'">
+                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'stringFilter' ">
                       <form class="form-inline">
                         <div class="form-group">
-                          <input type="email" class="form-control" id="stringFilterText"
-                                 placeholder="Text to filter by" [(ngModel)]="filter.value" [ngModelOptions]="{standalone: true}">
-                          <button type="submit" class="btn btn-primary" (click)="didSelectFilter(filter, null)" [attr.disabled]="filter.loading ? true : null">Go</button>
-                          <button type="submit" class="btn btn-default" (click)="filter.value = ''; didSelectFilter(filter, null)" [attr.disabled]="filter.loading ? true : null">Reset</button>
-                          <alert type="warning" *ngIf="filter.message != ''" dismissible="true">
+
+                          <!--[typeahead]="data.currentSelectedData.children"-->
+                          <!--typeaheadOptionField="name"-->
+                          <input
+                                 class="form-control"
+                                 id="stringFilterText"
+                                 placeholder="Text to filter by"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="filter.value"
+                                 [debounce]="500"
+                                 (onDebounce)="didSelectFilter(filter,null)">
+                          <button type="button" class="btn btn-default" (click)="filter.value = ''; didSelectFilter(filter, null)" [attr.disabled]="filter.loading ? true : null">Reset</button>
+                          <alert type="warning" *ngIf="filter.message != ''">
                             {{filter.message}}
                           </alert>
                           <!--      -->
@@ -102,10 +129,7 @@
             </div>
           </tab>
         </tabset>
-
-
       </div>
-
     </div>
   </div>
   <div class="row">
@@ -125,8 +149,6 @@
     </div>
   </div>
 
-
-</div>
 
 
 

@@ -5,11 +5,18 @@
   border-width: 1px;
   border-right: solid;
   border-right-width: 1px !important;
+
 }
+
+
 
 .breadcrub-single {
   border-bottom: solid;
   border-width:3px;
+}
+
+.breadcrumb {
+margin-bottom: 0px !important;
 }
 
 .bold {
@@ -30,6 +37,13 @@
 .info-title {
   font-size: large;
   font-weight: bold;
+}
+
+.info-title-wrapper {
+  cursor: pointer;
+  margin-top: 15px !important;
+  width: 90%;
+  border-bottom: solid 1px white;
 }
 
 .info-link{

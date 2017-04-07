@@ -4,6 +4,7 @@ import {D3DataService} from "../../services/dataServiceInterface";
 import {CirclesComponent} from "../vis/circles/circles.component";
 import {D3NodeInterface} from "../../model/d3NodeInterface";
 import {DataSemService} from "../../services/semantic/data-sem";
+
 //import {Component, OnInit, OnChanges, ViewChild, ElementRef, Input, ViewEncapsulation} from '@angular/core';
 
 @Component({
@@ -22,12 +23,13 @@ export class HomeComponent implements OnInit, AfterViewInit {
   constructor(private relData: DataRelService, private semData : DataSemService) {
     this.data = semData;
     this.bgOfSidebar = "white";
+
   }
 
   ngAfterViewInit() {
     //console.log(this.ciclesContainer)
-    this.heightOfSidebar = this.ciclesContainer.height < 600 ? this.ciclesContainer.height + "px" : "600px";
-
+    //this.heightOfSidebar = this.ciclesContainer.height < 600 ? this.ciclesContainer.height + "px" : "600px";
+    this.heightOfSidebar = this.ciclesContainer.height + "px";
   }
 
   last10Focuses(): D3NodeInterface[] {
@@ -40,6 +42,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   didSelectFilter(filter, value) {
+    console.log(value);
     this.ciclesContainer.didSelectFilter(filter, value);
   }
 

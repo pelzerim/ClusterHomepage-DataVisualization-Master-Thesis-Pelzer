@@ -17,13 +17,18 @@ import {DataSemService} from "./services/semantic/data-sem";
 import { TabsModule } from 'ng2-bootstrap/tabs';
 import {BenchmarkService} from "./services/benchmark";
 import { AlertModule } from 'ng2-bootstrap/alert';
+import { BenchmarkComponent } from './components/benchmark/benchmark.component';
+import { TypeaheadModule } from 'ng2-bootstrap/typeahead';
+import {DebounceDirective} from "./services/directives/debounce";
 
 @NgModule({
   declarations: [
     AppComponent,
     CirclesComponent,
     HomeComponent,
-    CirclesComponent
+    CirclesComponent,
+    BenchmarkComponent,
+    DebounceDirective
   ],
   imports: [
     BrowserModule,
@@ -34,7 +39,8 @@ import { AlertModule } from 'ng2-bootstrap/alert';
     TooltipModule.forRoot(),
     CollapseModule.forRoot(),
     TabsModule.forRoot(),
-    AlertModule.forRoot()
+    AlertModule.forRoot(),
+    TypeaheadModule.forRoot()
   ],
   providers: [appRoutingProviders, DataRelService, DataSemService, BenchmarkService],
   bootstrap: [AppComponent]

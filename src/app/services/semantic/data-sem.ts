@@ -55,17 +55,18 @@ export class DataSemService implements D3DataService {
 
           let newNode = new SemD3Node(this);
           newNode.uri = uri;
-          newNode.name = child.title ? capitalizeFirstLetter(child.title.value) : uri.getValueFormatted();
+          newNode.name = child.title ? capitalizeFirstLetter(child.title.value.replace("&#38;", "&")) : uri.getValueFormatted();
           newNode.nameRedo();
           newNode.typeURI = uri;
-          newNode.setSize(child.rank.value);
+          if (child.comment) newNode.typeURI.comment = child.comment.value;
           newNode.parent = cluster;
+          newNode.setSize(child.children.value);
           newNode.semD3NodeType = SemD3NodeType.Class;
           newNode.predicateConnectingParentToThisURI = null;
-
+          //console.log(newNode)
           // let info = [];
           // child.title ? info.push(new SemanticInformationChunk(new SemDataURI("Title"),child.title.value)):null;
-          // child.comment ? info.push(new SemanticInformationChunk(new SemDataURI("Comment"),child.comment.value)):null;
+          //child.comment ? info.push(new SemanticInformationChunk(new SemDataURI("Comment"),child.comment.value)):null;
           // newNode.information = info;
 
 
@@ -81,8 +82,8 @@ export class DataSemService implements D3DataService {
         newNode.name = "Forschungsschwerpunkte";
         newNode.nameRedo();
         newNode.typeURI = uri;
-        newNode.setSize(0.0);
         newNode.parent = cluster;
+        newNode.setSize(5);
         newNode.semD3NodeType = SemD3NodeType.Class;
         newNode.predicateConnectingParentToThisURI = null;
 
@@ -121,11 +122,11 @@ export class DataSemService implements D3DataService {
     let bodyString = JSON.stringify(payload);
     // Do requerst
     let timer = this.benchmark.timer(type, this.currentMode);
-
+    let node1 = node;
     return this.http
       .post(url, bodyString)
       .map((res: Response) => {
-        timer.stop()
+        timer.stop();
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj.results.bindings) {
@@ -134,14 +135,16 @@ export class DataSemService implements D3DataService {
 
           let newNode = new SemD3Node(this);
           newNode.uri = uri;
-          newNode.name = capitalizeFirstLetter(child.title.value);
+          newNode.name = capitalizeFirstLetter(child.title.value.replace("&#38;", "&"));
           newNode.nameRedo();
-          newNode.setSize(child.rank.value);
-          newNode.parent = node;
+          newNode.parent = node1;
+          newNode.setSize(child.children.value);
           newNode.semD3NodeType = SemD3NodeType.Instance;
           newNode.typeURI = new SemDataURI(child.type.value);
           newNode.typeURI.typeLabel = child.typeLabel ? capitalizeFirstLetter(child.typeLabel.value) : null;
+          newNode.typeURI.comment = child.typeComment ? child.typeComment.value : null;
           newNode.predicateConnectingParentToThisURI = new SemDataURI(child.p.value);
+          newNode.predicateConnectingParentToThisURI.valueLabel = child.predicateLabel ? capitalizeFirstLetter(child.predicateLabel.value) : null;
           let info = [];
           //child.title ? info.push(new SemanticInformationChunk(new SemDataURI("Title"),child.title.value)):null;
           child.comment ? info.push(new SemanticInformationChunk(new SemDataURI("Comment"),child.comment.value)):null;
@@ -171,7 +174,7 @@ export class DataSemService implements D3DataService {
     console.log("QUERYING: " + url + " Original URI ("+ node.uri.getValue() + ")");
     // ...using get request
     // Prepare filter
-    let payload = {filters: null}
+    let payload = {filters: null};
     let type = BenchmarkTask.GetChildren;
     if (facettedSearch) {
       type = BenchmarkTask.GetChildWithFacettedSearch;
@@ -194,11 +197,11 @@ export class DataSemService implements D3DataService {
 
           let newNode = new SemD3Node(this);
           newNode.uri = uri;
-          newNode.name = child.title.value;
+          newNode.name = child.title.value.replace("&#38;", "&");
           newNode.nameRedo();
           newNode.typeURI = node.uri;
-          newNode.setSize(child.rank.value);
           newNode.parent = node;
+          newNode.setSize(child.children.value);
           newNode.semD3NodeType = SemD3NodeType.Instance;
           newNode.predicateConnectingParentToThisURI = node.uri;
           children.push(newNode)
@@ -229,7 +232,7 @@ export class DataSemService implements D3DataService {
         timer.stop();
         let obj = res.json();
         let children: InformationChunk[] = [];
-        console.log(obj)
+        //console.log(obj)
         for (let child of obj.results.bindings) {
           if (Object.keys(child).length !== 0 && child.constructor === Object) {
             let chunk = new SemanticInformationChunk(new SemData(child.p), new SemData(child.o))

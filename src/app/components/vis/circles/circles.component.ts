@@ -4,7 +4,7 @@ import {D3Node, EmptyD3Node} from "../../../model/node";
 import {D3NodeInterface} from "../../../model/d3NodeInterface";
 import {Color} from "../../../model/colors";
 import {D3DataService} from "../../../services/dataServiceInterface";
-import {FCTypeFilter, FCFilter, FCStringFilter} from "../../../model/facettedSearch";
+import {FCTypeFilter, FCFilter, FCStringFilter, FCSizeFilter} from "../../../model/facettedSearch";
 
 @Component({
   selector: 'vis-circles',
@@ -47,7 +47,7 @@ export class CirclesComponent implements OnInit {
   }
 
   public didSelectFilter(filter: any, value: any) {
-    if (filter.dbName == "typeFilter") {
+    if (filter.dbName == "typeFilter" || filter.dbName == "predicateFilter") {
       let f: FCTypeFilter = (filter as FCTypeFilter);
       f.didSelectIndex(value).then((children) => {
         f.facettedSearch.parentNode.children = children;
@@ -69,13 +69,24 @@ export class CirclesComponent implements OnInit {
         f.message =  "No results.";
         filter.loading = false;
       });
+    } else if (filter.dbName == "sizeFilter") {
+      let f: FCSizeFilter = (filter as FCSizeFilter);
+      f.didSelectIndex(value).then((children) => {
+        f.facettedSearch.parentNode.children = children;
+        this.reloadCirclesForFilter(filter);
+        f.message =  "";
+      }).catch((err) => {
+        console.log("error fitering ", err);
+        f.message =  "No results.";
+        filter.loading = false;
+      });
     }
   }
 
   createCircles() {
     let element = this.chartContainer.nativeElement; // Direkter link auf chart
     this.width = element.offsetWidth;
-    this.height = element.offsetWidth > 600 ? 600 : element.offsetWidth;
+    this.height = window.innerHeight - 60;// > 600 ? 600 : element.offsetWidth;
 
     let svg = d3.select(element).append('svg')
       .attr('width', this.width)
@@ -106,7 +117,7 @@ export class CirclesComponent implements OnInit {
     //.padding(2); // Erstellt packlayout, aber noch nix drin
     pack.padding(function (d: any) {
       return 6;
-    })
+    });
 
     let root; // Root node
 
@@ -114,7 +125,7 @@ export class CirclesComponent implements OnInit {
       root = d3.hierarchy(rootObject) // Macht ne hierachie aus den daten/Erweitert daten mit werten wie data,depth, height, parent usw
         .sum(function (d: any) {
           return d.size;
-        })
+        });
       // .sort(function (a, b) {
       //   return b.value - a.value;
       // });
@@ -163,18 +174,18 @@ export class CirclesComponent implements OnInit {
             if (mouseoveredCircle) {
               let w = this.width + diameter;
               let mx = mouseoveredCircle.x * transform.k;
-              let tx = d.x * transform.k
+              let tx = d.x * transform.k;
 
-              var a = mx - tx
+              let a = mx - tx;
               if (Math.abs(a) > w) return false;
 
 
               let my = mouseoveredCircle.y * transform.k;
               let ty = d.y * transform.k
-              var b = my - ty
+              let b = my - ty;
               if (Math.abs(b) > w) return false;
 
-              var c = Math.sqrt(a * a + b * b);
+              let c = Math.sqrt(a * a + b * b);
               //console.log(c);
               // if(d.data.name == "Nachwuchsfoerderungen") {
               //   console.log("translate(" + ((transform.x + d.x * transform.k) - radius) + "," + ((transform.y + d.y * transform.k ) - radius) + ")")
@@ -251,7 +262,7 @@ export class CirclesComponent implements OnInit {
           mouseoveredCircleSelection.style("stroke-opacity", function (e: any) {
             //console.log(e.data.name)
             if (e == mouseoveredCircle) {
-              return Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100), 0.5);
+              return 0.5;//Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100), 0.5);
               //console.log(widthOfCircle( (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100)))
               //return widthOfCircle((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) ) + "px";
             } else {
@@ -536,6 +547,7 @@ export class CirclesComponent implements OnInit {
 
       // START Mouseover
       let mouseover = (d: any) => {
+        if (d == mouseoveredCircle) return;
         //console.log("d", d.x * transform.k, d.y * transform.k, d.r * transform.k)
         if (d.depth == currentDepth + 1 || d.depth == currentDepth) {
           // if (d.parent != focus) {
@@ -568,7 +580,7 @@ export class CirclesComponent implements OnInit {
           mouseoveredCircleSelection.style("stroke-opacity", function (e: any) {
             //console.log(e.data.name)
             if (e == d) {
-              return Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100), 0.5);
+              return 0.5; //Math.max((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100), 0.5);
               //console.log(widthOfCircle( (((100 / diameterMinus) * (e.r * transform.k * 2)) / 100)))
               //return widthOfCircle((((100 / diameterMinus) * (e.r * transform.k * 2)) / 100) ) + "px";
             } else {
@@ -788,7 +800,7 @@ export class CirclesComponent implements OnInit {
             mouseover(d);
           })
           .on("mousemove", function (d: any) {
-            //mouseover(d)
+            mouseover(d);
             div
               .style("left", (d3.event.pageX + 10) + "px")
               .style("top", (d3.event.pageY ) + "px");

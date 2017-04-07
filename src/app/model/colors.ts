@@ -159,7 +159,7 @@ export class Color {
 
 }
 
-class RGB {
+export class RGB {
 
   private r: number = 0;
   private g: number = 0;
@@ -259,7 +259,7 @@ class RGB {
 
 }
 
-class HEX {
+export class HEX {
 
   private hex: string = "#000000";
 
