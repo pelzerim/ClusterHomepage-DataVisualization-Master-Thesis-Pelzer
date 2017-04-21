@@ -19,8 +19,24 @@
 <!--</div>-->
 <!-- /.container-fluid -->
 <!--</nav>-->
+<div class="click-capture" *ngIf=" !benchmark.currentTask.running"></div>
+<div  (click)="benchmark.currentTask.addClick()">
 
-
+<div class="benchmark">
+  <div *ngIf="!benchmark.didEnterId">
+    <div class="form-inline">
+    <div class="form-group" >
+      <label for="exampleInputEmail1">ID</label>
+      <input type="text" class="form-control" id="exampleInputEmail1" placeholder="Email" [(ngModel)]="benchmark.userId">
+    </div>
+    <button type="button" class="btn btn-default" (click)="benchmark.didEnterId = true; benchmark.update()">Enter</button>
+  </div></div>
+  <div *ngIf="benchmark.didEnterId">
+    <button type="button" class="btn btn-primary" *ngIf="!benchmark.currentTask.running" (click)="benchmark.currentTask.start()">Aufgabe {{benchmark.currentTask.number}} Starten</button>
+    <button type="button" class="btn btn-success" *ngIf="benchmark.currentTask.running" (click)="benchmark.nextTask(true)">Fertig</button>
+    <button type="button" class="btn btn-danger" *ngIf="benchmark.currentTask.running" (click)="benchmark.nextTask(false)">Aufgeben</button>
+  </div>
+</div>
 
   <div class="row">
     <div class="col-md-8 nopadding thin-border">
@@ -36,99 +52,118 @@
       </div>
       <div *ngIf="data.currentSelectedData">
         <h3>{{data.currentSelectedData.name}}</h3>
-        <tabset  type="pills" [justified]="true">
-          <tab customClass="single-tab">
-            <template tabHeading>Information</template>
+        <!--<tabset  type="pills" [justified]="true">-->
+          <!--<tab customClass="single-tab">-->
+            <!--<template tabHeading>Information</template>-->
 
-            <div *ngIf="data.currentSelectedData.information" >
-              <div *ngFor="let informationChunk of data.currentSelectedData.information" >
-                <div class="info-title-wrapper">
-                <span class="info-title" (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed">
-                  <span class="glyphicon glyphicon-search" [ngClass]="{'glyphicon-chevron-right': !informationChunk.isCollapsed, 'glyphicon-chevron-down': informationChunk.isCollapsed}" aria-hidden="true"></span>
-                  {{informationChunk.name()}}
-                </span>
-              </div>
-                <span [collapse]="!informationChunk.isCollapsed" class="info-content"
-                      [innerHTML]="informationChunk.content()"
-                     ></span>
-              </div>
-            </div>
-          </tab>
-          <tab customClass="single-tab" [active]="true"
-               [disabled]="!data.currentSelectedData.facettedSearch || !data.currentSelectedData.facettedSearch.filters">
+            <!--<div *ngIf="data.currentSelectedData.information" >-->
+              <!--<div *ngFor="let informationChunk of data.currentSelectedData.information" >-->
+                <!--<div class="info-title-wrapper">-->
+                <!--<span class="info-title" (click)="informationChunk.isCollapsed = !informationChunk.isCollapsed">-->
+                  <!--<span class="glyphicon glyphicon-search" [ngClass]="{'glyphicon-chevron-right': !informationChunk.isCollapsed, 'glyphicon-chevron-down': informationChunk.isCollapsed}" aria-hidden="true"></span>-->
+                  <!--{{informationChunk.name()}}-->
+                <!--</span>-->
+              <!--</div>-->
+                <!--<span [collapse]="!informationChunk.isCollapsed" class="info-content"-->
+                      <!--[innerHTML]="informationChunk.content()"-->
+                     <!--&gt;</span>-->
+              <!--</div>-->
+            <!--</div>-->
+          <!--</tab>-->
+          <!--<tab customClass="single-tab" [active]="true"-->
+               <!--[disabled]="!data.currentSelectedData.facettedSearch || !data.currentSelectedData.facettedSearch.filters">-->
 
-            <template tabHeading>Filter
-              <span class="badge" *ngIf="data.currentSelectedData.facettedSearch.activeFilters">Aktiv</span>
-            </template>
-            <div *ngIf="data.currentSelectedData.facettedSearch" class="border-lr">
-              <br>
-              <accordion>
-                <div *ngFor="let filter of data.currentSelectedData.facettedSearch.filters">
-                  <accordion-group [isOpen]="true" *ngIf="filter.isShowing()">
-                    <div accordion-heading>
-                      {{filter.title}}
+
+
+            <!--<template tabHeading>-->
+        <div *ngIf="data.currentSelectedData.facettedSearch && data.currentSelectedData.facettedSearch.filters" class="border-lr">
+          <br>
+          <h4>Filter <span class="badge" *ngIf="data.currentSelectedData.facettedSearch.activeFilters">Aktiv</span></h4>
+
+          <accordion>
+            <div *ngFor="let filter of data.currentSelectedData.facettedSearch.filters">
+              <accordion-group [isOpen]="true" *ngIf="filter.isShowing()">
+                <div accordion-heading>
+                  {{filter.title}}
+                </div>
+                <!--SIZE FILTER-->
+                <div class="panel-body nopadding" *ngIf="filter.dbName == 'sizeFilter'" (change)="didSelectFilter(filter,$event.target.value)">
+                  <form class="form-inline">
+                    <div class="form-group">
+                      <select id="exampleInputName2" class="form-control" >
+                        <option *ngFor="let item of filter.options, let i = index"
+                                [selected]="item.dbName == filter.value"
+                                [value]="i"
+                        >{{item.title}}</option>
+                      </select>
+                      <!--      -->
                     </div>
-                    <!--SIZE FILTER-->
-                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'sizeFilter'" (change)="didSelectFilter(filter,$event.target.value)">
-                      <form class="form-inline">
-                        <div class="form-group">
-                          <select id="exampleInputName2" class="form-control" >
-                            <option *ngFor="let item of filter.options, let i = index"
-                                    [selected]="item.dbName == filter.value"
-                                    [value]="i"
-                            >{{item.title}}</option>
-                          </select>
-                          <!--      -->
-                        </div>
-                      </form>
-                    </div>
+                  </form>
+                </div>
 
-                    <!-- TYPE FILTER -->
-                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'typeFilter' || filter.dbName == 'predicateFilter'">
-                      <div class="checkbox" *ngFor="let singleTypeFilter of filter.options, let i = index">
-                        <label>
-                          <input type="checkbox" [attr.checked]="singleTypeFilter.value ? true : null"
-                                 [attr.disabled]="filter.loading ? true : null" (click)="didSelectFilter(filter,i)">
-                          {{singleTypeFilter.name}}
+                <!-- TYPE FILTER -->
+                <div class="panel-body nopadding" *ngIf="filter.dbName == 'typeFilter' || filter.dbName == 'predicateFilter'">
+                  <div class="checkbox" *ngFor="let singleTypeFilter of filter.options, let i = index">
+                    <label>
+                      <input type="checkbox" [attr.checked]="singleTypeFilter.value ? true : null"
+                             [attr.disabled]="filter.loading ? true : null" (click)="didSelectFilter(filter,i)">
+                      {{singleTypeFilter.name}}
 
-                          <span class="glyphicon glyphicon-info-sign" aria-hidden="true" *ngIf="singleTypeFilter.comment" placement="right" container="body" [tooltip]="singleTypeFilter.comment.substring(0,500)"></span>
-                          <span class="badge">{{singleTypeFilter.getBadgeValue()}}</span>
-                        </label>
-                      </div>
-                      <alert type="warning" *ngIf="filter.message != ''" dismissible="true">
+                      <span class="glyphicon glyphicon-info-sign" aria-hidden="true" *ngIf="singleTypeFilter.comment" placement="right" container="body" [tooltip]="singleTypeFilter.comment.substring(0,500)"></span>
+                      <span class="badge">{{singleTypeFilter.getBadgeValue()}}</span>
+                    </label>
+                  </div>
+                  <alert type="warning" *ngIf="filter.message != ''" dismissible="true">
+                    {{filter.message}}
+                  </alert>
+                </div>
+                <!--NAME FILTER-->
+                <div class="panel-body nopadding" *ngIf="filter.dbName == 'stringFilter' ">
+                  <form class="form-inline">
+                    <div class="form-group">
+
+                      <!--[typeahead]="data.currentSelectedData.children"-->
+                      <!--typeaheadOptionField="name"-->
+                      <input
+                        class="form-control"
+                        id="stringFilterText"
+                        placeholder="Text to filter by"
+                        [ngModelOptions]="{standalone: true}"
+                        [(ngModel)]="filter.value"
+                        [debounce]="500"
+                        (onDebounce)="didSelectFilter(filter,null)">
+                      <button type="button" class="btn btn-default" (click)="filter.value = ''; didSelectFilter(filter, null)" [attr.disabled]="filter.loading ? true : null">Reset</button>
+                      <alert type="warning" *ngIf="filter.message != ''">
                         {{filter.message}}
                       </alert>
+                      <!--      -->
                     </div>
-                    <!--NAME FILTER-->
-                    <div class="panel-body nopadding" *ngIf="filter.dbName == 'stringFilter' ">
-                      <form class="form-inline">
-                        <div class="form-group">
-
-                          <!--[typeahead]="data.currentSelectedData.children"-->
-                          <!--typeaheadOptionField="name"-->
-                          <input
-                                 class="form-control"
-                                 id="stringFilterText"
-                                 placeholder="Text to filter by"
-                                 [ngModelOptions]="{standalone: true}"
-                                 [(ngModel)]="filter.value"
-                                 [debounce]="500"
-                                 (onDebounce)="didSelectFilter(filter,null)">
-                          <button type="button" class="btn btn-default" (click)="filter.value = ''; didSelectFilter(filter, null)" [attr.disabled]="filter.loading ? true : null">Reset</button>
-                          <alert type="warning" *ngIf="filter.message != ''">
-                            {{filter.message}}
-                          </alert>
-                          <!--      -->
-                        </div>
-                      </form>
-                    </div>
-                  </accordion-group>
-                  <br>
+                  </form>
                 </div>
-              </accordion>
+              </accordion-group>
             </div>
-          </tab>
-        </tabset>
+          </accordion>
+        </div>
+
+        <div *ngIf="data.currentSelectedData && data.currentSelectedData.information">
+        <h4>Information</h4>
+            <!--</template>-->
+        <accordion>
+
+          <accordion-group [isOpen]="false" *ngFor="let informationChunk of data.currentSelectedData.information">
+            <div accordion-heading>
+              {{informationChunk.name()}}
+            </div>
+            <!--SIZE FILTER-->
+            <div class="panel-body nopadding" [innerHTML]="informationChunk.content()">
+
+            </div>
+
+          </accordion-group>
+        </accordion>
+        </div>
+          <!--</tab>-->
+        <!--</tabset>-->
       </div>
     </div>
   </div>
@@ -152,3 +187,4 @@
 
 
 
+</div>

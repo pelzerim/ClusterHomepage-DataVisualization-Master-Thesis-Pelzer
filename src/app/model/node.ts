@@ -20,7 +20,7 @@ export class D3Node implements D3NodeInterface {
   tooltip(): string {
     return "";
   }
-
+  isLoading : boolean = false;
   isInFocus: boolean = false;
 
   didLoadChildren: boolean = false;
@@ -101,14 +101,16 @@ export class RelD3Node extends D3Node {
               public parent: D3NodeInterface) {
     super(name, size);
     this.name = name.replace("&#38;", "&");
-    if (this.parent && this.parent.facettedSearch && this.parent.facettedSearch.namedFilters && this.parent.facettedSearch.namedFilters["sizeFilter"] && this.parent.facettedSearch.namedFilters["sizeFilter"].value == "children") {
-      this.size = size;
-    } else {
+    this.facettedSearch = new FSFacettedSearch(this);
+    if (this.parent && this.parent.facettedSearch && this.parent.facettedSearch.namedFilters && this.parent.facettedSearch.namedFilters["sizeFilter"] && this.parent.facettedSearch.namedFilters["sizeFilter"].value == "none") {
       this.size = 1;
+    } else {
+      this.size = size;
+
     }
 
 
-    this.facettedSearch = new FSFacettedSearch(this);
+
   }
 
   public loadChildren(): Promise<D3Node[]> {
@@ -149,7 +151,7 @@ export class RelD3Node extends D3Node {
   }
 
   type() {
-    return this.tableName;
+    return this.tableName.replace("content_","");
   }
 
   typeInDB(): string {
@@ -203,10 +205,11 @@ export class SemD3Node extends D3Node {
   // IMPORTANT: MAKE SURE TO SET PARENT BEFORE INVOKING THIS
   public setSize(size: number) {
     if (!this.parent) throw new Error("Set parent proerty before setting size.");
-    if (this.parent && this.parent.facettedSearch && this.parent.facettedSearch.namedFilters["sizeFilter"] &&  this.parent.facettedSearch.namedFilters["sizeFilter"].value == "children") {
-      this.size = size;
-    } else {
+    if (this.parent && this.parent.facettedSearch && this.parent.facettedSearch.namedFilters["sizeFilter"] &&  this.parent.facettedSearch.namedFilters["sizeFilter"].value == "none") {
       this.size = 1;
+    } else {
+      this.size = size;
+
     }
 
   }

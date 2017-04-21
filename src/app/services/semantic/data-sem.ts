@@ -11,12 +11,15 @@ import {D3NodeInterface} from "../../model/d3NodeInterface";
 import {D3DataService} from "../dataServiceInterface";
 import {InformationChunk, SemanticInformationChunk, SemData, SemDataURI} from "../../model/InformationChunk";
 import {ColorMode} from "../../model/colors";
-import {FCFilter, FacettedSearch} from "../../model/facettedSearch";
+import {FacettedSearch} from "../../model/facettedSearch";
 import {BenchmarkService, BenchmarkTask} from "../benchmark";
 
 
 @Injectable()
 export class DataSemService implements D3DataService {
+  name(): string {
+    return "sem";
+  }
   public colorMode() {
     return ColorMode.Semantic;
   }
@@ -47,6 +50,7 @@ export class DataSemService implements D3DataService {
         cluster.uri = new SemDataURI(null);
         cluster.semD3NodeType = SemD3NodeType.Class;
         cluster.children = [];
+        cluster.didLoadChildren = true;
 
           //new SemD3ConceptWrapper("Cluster", children, children.length, this);
         let obj = res.json();
@@ -60,7 +64,8 @@ export class DataSemService implements D3DataService {
           newNode.typeURI = uri;
           if (child.comment) newNode.typeURI.comment = child.comment.value;
           newNode.parent = cluster;
-          newNode.setSize(child.children.value);
+
+          newNode.size = 1;
           newNode.semD3NodeType = SemD3NodeType.Class;
           newNode.predicateConnectingParentToThisURI = null;
           //console.log(newNode)
@@ -83,7 +88,7 @@ export class DataSemService implements D3DataService {
         newNode.nameRedo();
         newNode.typeURI = uri;
         newNode.parent = cluster;
-        newNode.setSize(5);
+        newNode.setSize(1);
         newNode.semD3NodeType = SemD3NodeType.Class;
         newNode.predicateConnectingParentToThisURI = null;
 

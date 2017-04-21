@@ -16,6 +16,9 @@ import {BenchmarkService, BenchmarkTask} from "../benchmark";
 
 @Injectable()
 export class DataRelService implements D3DataService {
+  name(): string {
+    return "rel";
+  }
   public colorMode() {
     return ColorMode.Relational;
   }
@@ -67,6 +70,7 @@ export class DataRelService implements D3DataService {
     for (let tableName in DataRelService.allClusterConcepts) {
       promises.push(
         this.getCountOfChildrenFromTable(tableName, DataRelService.allClusterConcepts[tableName]).then((node) => {
+          node.size = 1;
           children.push(node);
         })
       )
@@ -74,6 +78,7 @@ export class DataRelService implements D3DataService {
     return Promise.all(promises).then(() => {
       timer.stop();
       let cluster = new RelD3ConceptWrapper("Cluster", children,promises.length, "none", this);
+      cluster.didLoadChildren = true;
       return cluster;
     })
 
@@ -102,7 +107,7 @@ export class DataRelService implements D3DataService {
         for (let child of obj) {
           if (child ) { // Do not add self &&
            if (node instanceof RelD3Node && ((node as RelD3Node).parent as RelD3Node).externalId == child.page_ptr_id) {
-              console.log("NOT ADDING" , node.name, "to prevent loop")
+              console.log("NOT ADDING" , node.name, "to prevent loop");
             } else {
               children.push(new RelD3Node(child.title, child.children, child.table_name, child.page_ptr_id, this, node))
             }
@@ -148,7 +153,8 @@ export class DataRelService implements D3DataService {
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj) {
-            children.push(new RelD3Node(child.title_de, child.children, node.tableName, child.page_ptr_id, this, node))
+            let ctChildren = child.children ? child.children :1;
+            children.push(new RelD3Node(child.title_de,ctChildren, node.tableName, child.page_ptr_id, this, node))
         }
         node.children = children;
         return children;

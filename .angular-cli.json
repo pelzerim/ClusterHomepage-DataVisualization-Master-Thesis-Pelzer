@@ -21,6 +21,7 @@
       "prefix": "app",
       "mobile": false,
       "styles": [
+        "../node_modules/font-awesome/css/font-awesome.css",
         "resources/css/bootstrap.min.css",
         "styles.css"
       ],
@@ -32,7 +33,7 @@
       }
     }
   ],
-  "addons": [],
+  "addons": ["../node_modules/font-awesome/fonts/*.+(otf|eot|svg|ttf|woff|woff2)"],
   "packages": [],
   "e2e": {
     "protractor": {

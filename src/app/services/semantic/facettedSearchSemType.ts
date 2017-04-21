@@ -81,9 +81,10 @@ export class FSSizeFilter implements FCSizeFilter {
   loading: boolean = false;
 
   constructor(public facettedSearch : FacettedSearch) {
-
+    let a = new FSSizeFilterOption("Count of content", "children");
+    //this.value = a.dbName;
+    this.options.push(a);
     this.options.push(new FSSizeFilterOption("None", "none"));
-    this.options.push(new FSSizeFilterOption("Number of children", "children"));
   }
 
   getData(): any {
@@ -121,7 +122,7 @@ export class FSStringFilter implements FCStringFilter {
   }
 
   value: string = "";
-  title: string = "Filter";
+  title: string = "Text Filter";
   dbName: string = FILTERSTRING;
   loading: boolean = false;
 

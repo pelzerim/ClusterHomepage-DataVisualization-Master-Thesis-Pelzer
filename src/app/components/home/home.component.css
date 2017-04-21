@@ -54,6 +54,33 @@ body {
   /*Always show sidebar so tooltip doesnt activate it*/
   overflow-y: scroll !important;
 }
+.benchmark {
+  opacity: 0.1;
+  z-index: 9999;
+  position: absolute;
+  left:75%;
+  right: 0;
+  bottom: 0;
+  top: 95%;
+  background-color: gray;
+}
 
+.click-capture {
+  pointer-events: none;
+  opacity: 1;
+  z-index: 9998;
+  position: absolute;
+  left:0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  background-color: gray;
+}
+
+
+.benchmark:hover{
+  opacity: 1;
+
+}
 
 /*TAB STYLING IN STYLES.CSS BECAUSE BOOSTRAP*/
