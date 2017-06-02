@@ -25,7 +25,7 @@ export class DataRelService implements D3DataService {
   currentSelectedData: D3NodeInterface;
   currentFocusPath: D3NodeInterface[];
   currentMode :string;
-  private baseUrl = 'http://localhost:8888/relational';
+  private baseUrl = 'http://ec2-54-93-82-100.eu-central-1.compute.amazonaws.com:8888/relational';
   private static allClusterConcepts =
     {
       "content_ausstellung": "Ausstellungen",
@@ -67,6 +67,7 @@ export class DataRelService implements D3DataService {
     let children: D3NodeInterface[] = [];
     let promises = [];
     let timer = this.benchmark.timer(BenchmarkTask.GetRoot, this.currentMode);
+
     for (let tableName in DataRelService.allClusterConcepts) {
       promises.push(
         this.getCountOfChildrenFromTable(tableName, DataRelService.allClusterConcepts[tableName]).then((node) => {
@@ -76,8 +77,9 @@ export class DataRelService implements D3DataService {
       )
     }
     return Promise.all(promises).then(() => {
-      timer.stop();
+      //timer.stop();
       let cluster = new RelD3ConceptWrapper("Cluster", children,promises.length, "none", this);
+      cluster.timer = timer;
       cluster.didLoadChildren = true;
       return cluster;
     })
@@ -91,17 +93,16 @@ export class DataRelService implements D3DataService {
     let payload = {filters: null};
     let type = BenchmarkTask.GetChildren
     if (facettedSearch) {
-      type = BenchmarkTask.GetChildWithFacettedSearch;
+      type = BenchmarkTask.GetChildrenWithFacettedSearch;
       payload.filters = facettedSearch.getData(); // Stringify payload
     }
     let bodyString = JSON.stringify(payload);
     //let timer = this.benchmark.timer(BenchmarkTask.GetChildren);
     let timer = this.benchmark.timer(type, this.currentMode);
-
+    node.timer = timer;
     return this.http
       .post(url, bodyString)
       .map((res: Response) => {
-        timer.stop();
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj) {
@@ -137,19 +138,20 @@ export class DataRelService implements D3DataService {
     console.log("QUERYING: " + url)
     // ...using get request
     let payload = {filters: null};
-    let type = BenchmarkTask.GetChildren
+    let type = BenchmarkTask.GetClass
     if (facettedSearch) {
-      type = BenchmarkTask.GetChildWithFacettedSearch;
+      type = BenchmarkTask.GetClassWithFacettedSearch;
       payload.filters = facettedSearch.getData(); // Stringify payload
     }
     let bodyString = JSON.stringify(payload);
 
 
-    let timer = this.benchmark.timer(BenchmarkTask.GetClass, this.currentMode);
+    let timer = this.benchmark.timer(type, this.currentMode);
+    node.timer = timer;
     return this.http
       .post(url, bodyString)
       .map((res: Response) => {
-        timer.stop()
+
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj) {
@@ -184,10 +186,11 @@ export class DataRelService implements D3DataService {
 
     // ...using get request
     let timer = this.benchmark.timer(BenchmarkTask.GetInformation, this.currentMode);
+    node.timer = timer;
     return this.http
       .get(url)
       .map((res: Response) => {
-       timer.stop();
+
         let obj = res.json();
         let infos = []
         for (let info in obj) {

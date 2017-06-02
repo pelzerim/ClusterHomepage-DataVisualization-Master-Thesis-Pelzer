@@ -13,6 +13,10 @@ import {FSTypeFilter, FSFacettedSearch} from "../services/semantic/facettedSearc
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3Node implements D3NodeInterface {
+  stopTimer() {
+    if (this.timer) this.timer.stop();
+  }
+  timer: any;
 
   facettedSearch: FacettedSearch;
 

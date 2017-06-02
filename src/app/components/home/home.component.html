@@ -19,10 +19,10 @@
 <!--</div>-->
 <!-- /.container-fluid -->
 <!--</nav>-->
-<div class="click-capture" *ngIf=" !benchmark.currentTask.running"></div>
+<div class="click-capture" *ngIf=" !benchmark.currentTask.running && benchmarkEnabled"></div>
 <div  (click)="benchmark.currentTask.addClick()">
 
-<div class="benchmark">
+<div class="benchmark" *ngIf="benchmarkEnabled">
   <div *ngIf="!benchmark.didEnterId">
     <div class="form-inline">
     <div class="form-group" >

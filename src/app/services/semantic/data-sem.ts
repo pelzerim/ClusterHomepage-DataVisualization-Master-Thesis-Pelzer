@@ -27,7 +27,7 @@ export class DataSemService implements D3DataService {
   currentSelectedData: D3NodeInterface;
   currentFocusPath: D3NodeInterface[];
   currentMode = "sparql";
-  private baseUrl = 'http://localhost:8888';
+  private baseUrl = 'http://ec2-54-93-82-100.eu-central-1.compute.amazonaws.com:8888';
 
   public static iconForTableName =  {}; // Not using icons
 
@@ -43,8 +43,9 @@ export class DataSemService implements D3DataService {
     return this.http
       .get(url)
       .map((res: Response) => {
-        timer.stop();
+        //timer.stop();
         let cluster = new SemD3Node(this); // "Cluster", 0, new SemDataURI(null),  this, null, SemD3NodeType.Class, null
+        cluster.timer = timer;
         cluster.name ="Cluster";
         cluster.nameRedo();
         cluster.uri = new SemDataURI(null);
@@ -121,23 +122,23 @@ export class DataSemService implements D3DataService {
     let payload = {filters: null}
     let type = BenchmarkTask.GetChildren;
     if (facettedSearch) {
-      type = BenchmarkTask.GetChildWithFacettedSearch;
+      type = BenchmarkTask.GetChildrenWithFacettedSearch;
       payload.filters = facettedSearch.getData(); // Stringify payload
     }
     let bodyString = JSON.stringify(payload);
     // Do requerst
     let timer = this.benchmark.timer(type, this.currentMode);
+    node.timer = timer;
     let node1 = node;
     return this.http
       .post(url, bodyString)
       .map((res: Response) => {
-        timer.stop();
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj.results.bindings) {
           //console.log(child);
           let uri = new SemDataURI(child.o ? child.o.value : null);
-
+          if (!child.title) return;
           let newNode = new SemD3Node(this);
           newNode.uri = uri;
           newNode.name = capitalizeFirstLetter(child.title.value.replace("&#38;", "&"));
@@ -180,26 +181,25 @@ export class DataSemService implements D3DataService {
     // ...using get request
     // Prepare filter
     let payload = {filters: null};
-    let type = BenchmarkTask.GetChildren;
+    let type = BenchmarkTask.GetClass;
     if (facettedSearch) {
-      type = BenchmarkTask.GetChildWithFacettedSearch;
+      type = BenchmarkTask.GetClassWithFacettedSearch;
       payload.filters = facettedSearch.getData(); // Stringify payload
     }
     let bodyString = JSON.stringify(payload);
 
 
-    let timer = this.benchmark.timer(BenchmarkTask.GetClass, this.currentMode);
-
+    let timer = this.benchmark.timer(type, this.currentMode);
+    node.timer = timer;
     return this.http
       .post(url, payload)
       .map((res: Response) => {
-        timer.stop();
         let obj = res.json();
         let children: D3Node[] = [];
         for (let child of obj.results.bindings) {
           //console.log(child)
           let uri = new SemDataURI(child.s.value);
-
+          if (!child.title) return;
           let newNode = new SemD3Node(this);
           newNode.uri = uri;
           newNode.name = child.title.value.replace("&#38;", "&");
@@ -230,11 +230,11 @@ export class DataSemService implements D3DataService {
     console.log("QUERYING: " + url + " Original URI ("+ node.uri.getValue() + ")");
     // ...using get request
     let timer = this.benchmark.timer(BenchmarkTask.GetInformation, this.currentMode);
-
+    node.timer = timer;
     return this.http
       .get(url)
       .map((res: Response) => {
-        timer.stop();
+
         let obj = res.json();
         let children: InformationChunk[] = [];
         //console.log(obj)

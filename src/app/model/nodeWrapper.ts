@@ -10,6 +10,11 @@ import {FSFacettedSearch} from "../services/semantic/facettedSearchSemType";
  * Created by immanuelpelzer on 08.03.17.
  */
 export class D3ConceptWrapper implements D3NodeInterface {
+  stopTimer() {
+    if(this.timer) this.timer.stop();
+  }
+  timer: any;
+
   comment(): string {
     return null;
   }
@@ -76,6 +81,7 @@ export class D3ConceptWrapper implements D3NodeInterface {
 }
 
 export class RelD3ConceptWrapper extends D3ConceptWrapper {
+
   constructor(public name: string,
               public children: any[],
               public size:number,

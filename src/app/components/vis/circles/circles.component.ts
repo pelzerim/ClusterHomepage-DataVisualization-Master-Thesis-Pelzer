@@ -57,10 +57,13 @@ export class CirclesComponent implements OnInit {
         f.facettedSearch.parentNode.children = children;
         this.reloadCirclesForFilter(filter);
         f.message = "";
+        (f.facettedSearch.parentNode as any).stopTimer();
       }).catch((err) => {
         console.log("error fitering ", err);
         f.message = "No results.";
         filter.loading = false;
+        (f.facettedSearch.parentNode as any).stopTimer();
+
       });
     } else if (filter.dbName == "stringFilter") {
       let f: FCStringFilter = (filter as FCStringFilter);
@@ -68,10 +71,13 @@ export class CirclesComponent implements OnInit {
         f.facettedSearch.parentNode.children = children;
         this.reloadCirclesForFilter(filter);
         f.message = "";
+        (f.facettedSearch.parentNode as any).stopTimer();
       }).catch((err) => {
         console.log("error fitering ", err);
         f.message = "No results.";
         filter.loading = false;
+        (f.facettedSearch.parentNode as any).stopTimer();
+
       });
     } else if (filter.dbName == "sizeFilter") {
       let f: FCSizeFilter = (filter as FCSizeFilter);
@@ -79,10 +85,13 @@ export class CirclesComponent implements OnInit {
         f.facettedSearch.parentNode.children = children;
         this.reloadCirclesForFilter(filter);
         f.message = "";
+        (f.facettedSearch.parentNode as any).stopTimer();
       }).catch((err) => {
         console.log("error fitering ", err);
         f.message = "No results.";
         filter.loading = false;
+        (f.facettedSearch.parentNode as any).stopTimer();
+
       });
     }
   }
@@ -429,7 +438,7 @@ export class CirclesComponent implements OnInit {
                 .style("stroke-width", px + "px");
                 // .attr("stroke-dasharray",
                 //   px + "px")
-              setTimeout( function() {
+              setTimeout( () => {
                 if (d.data.isLoading && d == focus) {
                   if (px == 26) loading(1);
                   else {
@@ -438,6 +447,7 @@ export class CirclesComponent implements OnInit {
                 } else {
                   d3.select("#circle-" + focus.data.id())
                     .style("stroke-width", "20 px");
+                  d.data.isLoading = false;
                 }
               }, 20);
             };
@@ -516,6 +526,7 @@ export class CirclesComponent implements OnInit {
                   if (focus == d) { // is still in focus
                     this.data.currentSelectedData = d.data;
                     this.data.currentSelectedData.loadInformation().then((infos) => {
+                      d.data.stopTimer();
                     }).catch(error => {
                       d.data.isLoading = false;
                       console.log(error);
@@ -535,7 +546,7 @@ export class CirclesComponent implements OnInit {
             d.data.isLoading = true;
             focusNode(d.parent).then((didFocus) => {
               if (didFocus) {
-                console.log("focusing parent on same level as currentdeopth")
+                console.log("focusing parent on same level as currentdeopth");
                 loadDataForNode(focus).then(() => {
                   d.data.isLoading = false;
                   if (focus == d.parent){
@@ -565,7 +576,6 @@ export class CirclesComponent implements OnInit {
         // Check zoomed out of focus
         if (!isNear(focus) && !this.inTransition) { // is not big enough
           if (focus.parent) {
-
             console.log("zooming out");
             focus0 = focus;
             this.removeChildNodesOfNode(focus0.parent, focus0.depth);
@@ -845,7 +855,7 @@ export class CirclesComponent implements OnInit {
           // tooltip end
           .on("click", function (d) {
             mouseoveredCircle = d;
-            _dhis.inTransition = true;
+            //_dhis.inTransition = true;
 
             if (focus0 && d != focus0 && focus0.depth == d.depth && focus0.depth > 0) {
               console.log("focus0",focus0.data.name);
@@ -855,10 +865,6 @@ export class CirclesComponent implements OnInit {
               g.selectAll("g").filter(function (d: any) {
                 return d.parent ? d.parent == focus0 : false;
               }).style("display","none");
-
-
-
-
 
               // focus0.data.didLoadChildren = false;
               // focus0.children = null;
@@ -884,6 +890,7 @@ export class CirclesComponent implements OnInit {
           .on("mousemove", function (d: any) {
             if (!_dhis.inTransition) mouseover(d);
             div
+              .html(d.data.isLoading ? "<b>Lade Daten.</b> Bitte warten..." : d.data.tooltip() ? d.data.tooltip() : d.data.name)
               .style("left", (d3.event.pageX + 10) + "px")
               .style("top", (d3.event.pageY ) + "px");
           })
@@ -987,6 +994,7 @@ export class CirclesComponent implements OnInit {
       //focus = root;
       makeCirclesAndText(nodes);
       transitionText();
+      (rootObject as any).stopTimer();
       let _dhis = this;
       svg
         .style("background", "white") // background color of svg
@@ -1102,6 +1110,8 @@ export class CirclesComponent implements OnInit {
             // zoom to current focus again (do the transformation of the updated elements)
             //zoomTo(view);
             zoomed();
+
+            d.data.stopTimer();
             // END add nodes
             return new Promise<any>((resolve) => {
               resolve(true);
@@ -1162,13 +1172,18 @@ export class CirclesComponent implements OnInit {
         //return "translate(" + (d.x - v[0]) * k + "," + (d.y - v[1]) * k + ")";
 
 
-         console.log("transparent",parentX, parentY )
-         console.log(parentX, "-", (d.x ) * k, "+", radius, "=", t.x);
+         // console.log("transparent",parentX, parentY )
+         // console.log(parentX, "-", (d.x ) * k, "+", radius, "=", t.x);
          console.log("t", t)
-         console.log(-"210", (t.y + d.y * t.k ) - radius);
+         // console.log(-"210", (t.y + d.y * t.k ) - radius);
          let _dhis = this;
-        if (parentX && parentY) {
+        if (!isNaN(parentX) && !isNaN(parentY)) {
+          console.log("did" );
           _dhis.inTransition = true;
+
+          setTimeout(()=>{
+            this.inTransition = false;
+          }, 755);
           svg
             .transition()
             .duration(750)

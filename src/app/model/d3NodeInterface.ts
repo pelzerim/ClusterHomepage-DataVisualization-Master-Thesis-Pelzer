@@ -7,6 +7,8 @@ export interface D3NodeInterface {
   children : any[]
   size : number;
   didLoadChildren : boolean;
+  timer : any;
+  stopTimer();
   isInFocus : boolean;
   facettedSearch  : FacettedSearch;
 

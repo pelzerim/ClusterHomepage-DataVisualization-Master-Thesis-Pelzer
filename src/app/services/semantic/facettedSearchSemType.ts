@@ -84,7 +84,7 @@ export class FSSizeFilter implements FCSizeFilter {
     let a = new FSSizeFilterOption("Count of content", "children");
     //this.value = a.dbName;
     this.options.push(a);
-    this.options.push(new FSSizeFilterOption("None", "none"));
+    this.options.push(new FSSizeFilterOption("All equal", "none"));
   }
 
   getData(): any {

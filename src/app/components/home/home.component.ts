@@ -24,12 +24,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   /// Benchmark
   public benchmark : Benchmark;
+  public benchmarkEnabled;
+
+
 
   constructor(private relData: DataRelService, private semData : DataSemService, private http: Http) {
     // SETTINGS
     this.data = this.semData;
-     //this.data = this.relData;
-
+    //this.data = this.relData;
+    this.benchmarkEnabled = false;
 
     this.bgOfSidebar = "white";
     this.benchmark = new Benchmark(this.data.name(), http);

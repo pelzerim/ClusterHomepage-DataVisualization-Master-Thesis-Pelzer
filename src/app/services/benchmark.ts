@@ -71,16 +71,17 @@ export class BenchmarkService {
       this.save().catch((err) => {
         console.log("rror", err);
       });
-    }, 30000);
+    }, 10000);
 
   }
 
 }
 
 export enum BenchmarkTask {
-  GetChildWithFacettedSearch,
+  GetClassWithFacettedSearch,
   GetClass,
   GetRoot,
   GetInformation,
-  GetChildren
+  GetChildren,
+  GetChildrenWithFacettedSearch
 }
