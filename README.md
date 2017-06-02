@@ -1,4 +1,6 @@
-# DataVis
+# ClusterHomepage-DataVisualization-Master-Thesis-Pelzer
+
+![Bild](https://raw.githubusercontent.com/pelzerim/ClusterHomepage-DataVisualization-Master-Thesis-Pelzer/master/DataVisZoomInstanz.png)
 
 This project was generated with [angular-cli](https://github.com/angular/angular-cli) version 1.0.0-beta.22-1.
 
