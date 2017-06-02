@@ -3,7 +3,8 @@
 ![Bild](https://raw.githubusercontent.com/pelzerim/ClusterHomepage-DataVisualization-Master-Thesis-Pelzer/master/DataVisZoomInstanz.png)
 
 ## Development server
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+This application requires the [Angular CLI](https://github.com/angular/angular-cli) to be installed.
+Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. 
 
 ## API Server
-This app needs a running API Server. Please contact me for access.
+This app needs a running API Server. Please contact me if visualization shows nothing on start.
